@@ -8,7 +8,7 @@
 
 `gas-config` uses [gas-sheetdb](https://github.com/yorsh-co/gas-sheetdb) to provide a config layer for Apps Script projects with in-sheet editing.
 
-Configuration values are displayed and edited in a '.config' sheet that provides user-friendly labels, descriptions and data validation for runtime configuration values that can be used throughout the Apps Script project by calling `Config.get(...)`.
+Configuration values are displayed and edited in a sheet (`.config` by default, configurable per instance) that provides user-friendly labels, descriptions and data validation for runtime configuration values that can be used throughout the Apps Script project by calling `config.get(...)`.
 
 > **Disclaimer:**
 > This project and [Yorsh](https://github.com/yorsh-co) are independent and are not affiliated with, endorsed by, or associated with Google LLC.
@@ -169,28 +169,58 @@ clasp push
 
 ## Basic Usage
 
-### Define Configuration Schema Entries
+### Create a GasConfig Instance
 
-Add entries to `CONFIG_SCHEMA` in `module/config.schema.js`, following the [supported structure](#configuration-schema).
+Construct your own `GasConfig` instance with a schema and (optionally) a sheet name, following the [supported structure](#configuration-schema).
 
 ```js
-const CONFIG_SCHEMA = Object.freeze({
-  'system.locale': {
-    type: 'string',
-    required: true,
-    label: 'Locale',
-    default: 'en-GB',
-    description:
-      'Define the language and region used to format dates, numbers and text.',
-    example: 'en-GB',
+const config = new GasConfig({
+  schema: {
+    'system.locale': GasConfig.presets.locale,
+    'gForms.formUrl': {
+      type: 'string',
+      required: true,
+      label: 'Google Form URL',
+      default: '',
+      description: 'The edit URL for your Google Form',
+      example: 'https://docs.google.com/forms/d/abc.../edit',
+      validate: (value) => {
+        if (typeof value !== 'string') return false;
 
-    validate: (value) => {
-      if (typeof value !== 'string') return false;
+        const GOOGLE_FORM_EDIT_URL_REGEX =
+          /^https:\/\/docs\.google\.com\/forms\/d\/([\w-]+)\/edit(?:[/?#]\S*)?$/;
 
-      return /^[a-z]{2}-[A-Z]{2}$/.test(value);
+        return GOOGLE_FORM_EDIT_URL_REGEX.test(value);
+      },
     },
   },
 });
+```
+
+`GasConfig.presets` (see [Define Configuration Schema Entries](#define-configuration-schema-entries)) provides ready-made entries for common settings, which you can spread or reference directly into your own schema.
+
+> **Recommended pattern:**
+> Declare your instance once as a global constant and reference it everywhere else in the project, rather than constructing a new `GasConfig` per file.
+
+### Define Configuration Schema Entries
+
+Build your schema object from `GasConfig.presets` entries, your own custom entries, or a mix of both, following the [supported structure](#configuration-schema):
+
+```js
+const schema = {
+  ...GasConfig.presets,
+
+  'feature.myCustomFlag': {
+    type: 'boolean',
+    required: true,
+    label: 'My Custom Flag',
+    default: false,
+    description: 'Example of a custom, project-specific entry.',
+    example: true,
+  },
+};
+
+const config = new GasConfig({ schema });
 ```
 
 ### Synchronize Schema to the Google Sheet
@@ -198,7 +228,7 @@ const CONFIG_SCHEMA = Object.freeze({
 Run this during project initialization.
 
 ```js
-Config.syncSchema();
+config.syncSchema();
 ```
 
 This will:
@@ -212,15 +242,13 @@ This will:
 ### Read Configuration Values
 
 ```js
-const locale = Config.get('system.locale');
-
-Logger.log(locale);
+const locale = config.get('system.locale');
 ```
 
 ### Update Configuration Values
 
 ```js
-Config.set('feature.enableSync', false);
+config.set('feature.enableSync', false);
 ```
 
 All values are validated before persistence.
@@ -228,7 +256,7 @@ All values are validated before persistence.
 ### Force Reload Cached Values
 
 ```js
-Config.load({ force: true });
+config.load({ force: true });
 ```
 
 ## Project Details
@@ -239,20 +267,20 @@ Each schema entry supports:
 
 ```js
 /**
- * @typedef {Object} ConfigSchemaEntry
- * @property {ConfigValueType} type
+ * @typedef {Object} GasConfigSchemaEntry
+ * @property {GasConfigValueType} type
  * @property {boolean} required
  * @property {string} label
- * @property {ConfigValue} default
+ * @property {GasConfigValue} default
  * @property {string} [description]
- * @property {ConfigValue} [example]
- * @property {(value:ConfigValue) => boolean} [validate]
+ * @property {GasConfigValue} [example]
+ * @property {(value:GasConfigValue) => boolean} [validate]
  */
 ```
 
 #### Supported Value Types
 
-Currently supported:
+Currently supported (defined in `module/gas-config.presets.js`):
 
 ```js
 const SUPPORTED_CONFIG_VALUE_TYPES = new Set([
@@ -265,27 +293,7 @@ const SUPPORTED_CONFIG_VALUE_TYPES = new Set([
 
 > **Note:**
 > `object` accepts any JavaScript object type. Date objects are recommended but not enforced.
-> Although complex value types like json and array are supported by `gas-sheetdb` through encoding, their use is discouraged in CONFIG_SCHEMA to allow direct editing of the .config sheet without the risk of malformed configuration data.
-
-### IDE Autocomplete Support
-
-Update the `ConfigKey` typedef in `module/config.schema.js` to improve autocomplete support in editors.
-
-```js
-/**
- * @typedef {
- *   'system.locale' |
- *   'feature.enableSync'
- * } ConfigKey
- */
-```
-
-This improves IntelliSense suggestions for:
-
-```js
-Config.get();
-Config.set();
-```
+> Although complex value types like json and array are supported by `gas-sheetdb` through encoding, their use is discouraged in a schema to allow direct editing of the .config sheet without the risk of malformed configuration data.
 
 ### Validation
 
@@ -318,7 +326,7 @@ Error: Invalid config value: system.locale
 
 ### Storage Layer
 
-Configuration entries are stored inside the `.config` sheet using [`gas-sheetdb`](#dependencies).
+Configuration entries are stored inside the config sheet (`.config` by default) using [`gas-sheetdb`](#dependencies).
 
 The storage layer automatically handles:
 
@@ -329,19 +337,23 @@ The storage layer automatically handles:
 
 ### Runtime Cache
 
-`Config` maintains an in-memory cache using `Map`.
+Each `GasConfig` instance maintains its own in-memory cache using `Map`.
 
 This avoids repeated spreadsheet reads during execution.
 
 ```js
-const locale = Config.get('system.locale');
+const locale = config.get('system.locale');
 ```
 
-Values are loaded lazily (from the spreadsheet) on first access. On subsequent accesses during the same script execution, values are loaded from the in-memory cache stored in `Config`.
+Values are loaded lazily (from the spreadsheet) on first access. On subsequent accesses during the same script execution, values are loaded from the in-memory cache stored on the instance.
 
 ### Entry Point
 
-#### Config
+#### GasConfig
+
+Constructor:
+
+- `new GasConfig({ schema, sheetName = '.config' })`
 
 Methods:
 
@@ -351,7 +363,15 @@ Methods:
 - `save()`
 - `syncSchema()`
 
+#### `GasConfig.presets`
+
+Static property on `GasConfig` providing ready-made schema entries (currently `locale` and `enableSync`) for common configuration values.
+
 #### \_ConfigStorage
+
+Constructor:
+
+- `new _GasConfigStorage(sheetName)`
 
 Methods:
 
@@ -359,7 +379,7 @@ Methods:
 - `save(data)`
 - `syncSchema(schema)`
 
-#### \_ConfigValidator
+#### \_GasConfigValidator
 
 Methods:
 
@@ -370,8 +390,12 @@ Methods:
 ### Example Initialization Script
 
 ```js
+const config = new GasConfig({
+  schema: { ...GasConfig.presets },
+});
+
 function init() {
-  Config.syncSchema();
+  config.syncSchema();
 
   Logger.log('Configuration synchronized');
 }
