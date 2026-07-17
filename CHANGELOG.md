@@ -8,6 +8,10 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+---
+
+## [1.0.0] - 2026-07-17
+
 ### Changed
 
 - **Breaking:** Replaced the `Config` singleton with an instantiable `GasConfig` class. Consumers now construct their own instance with `new GasConfig({ schema, sheetName })` instead of relying on a single global config bound to a hardcoded `.config` sheet.
