@@ -112,6 +112,7 @@ class _GasConfigStorage {
             : meta.default;
 
         updates.push({
+          ...existingEntry,
 
           key,
           value,
