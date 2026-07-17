@@ -1,6 +1,6 @@
 {
   "name": "gas-config",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "private": true,
   "description": "In-sheet configuration management for Google Apps Script projects.",
   "repository": {

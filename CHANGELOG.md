@@ -6,7 +6,15 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
-## [Unreleased]
+## [1.0.1] - 2026-07-20
+
+### Changed
+
+- Pinned the `gas-sheetdb` `git subtree` install instructions to tag `0.1.2` to pin current `gas-config` version with a compatible `gas-sheetdb` version before make the changes to support `gas-sheetdb:1.0.0` which contains breaking changes.
+
+---
+
+## [1.0.0] - 2026-07-17
 
 ### Changed
 
