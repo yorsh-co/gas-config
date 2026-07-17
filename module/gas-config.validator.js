@@ -1,13 +1,13 @@
 /**
  * Internal schema and configuration validation helpers.
  */
-const _ConfigValidator = (() => {
+const _GasConfigValidator = (() => {
   /**
    * Validate a single configuration entry.
    *
-   * @param {ConfigKey} key
-   * @param {ConfigValue} value
-   * @param {ConfigSchema} schema
+   * @param {string} key
+   * @param {GasConfigValue} value
+   * @param {GasConfigSchema} schema
    */
   const validateEntry = (key, value, schema) => {
     const meta = schema[key];
@@ -24,8 +24,8 @@ const _ConfigValidator = (() => {
   /**
    * Validate all configuration entries.
    *
-   * @param {ConfigData} data
-   * @param {ConfigSchema} schema
+   * @param {GasConfigData} data
+   * @param {GasConfigSchema} schema
    */
   const validateEntries = (data, schema) => {
     const unknown = [];
@@ -36,7 +36,7 @@ const _ConfigValidator = (() => {
 
     if (unknown.length) {
       console.error(
-        `[_ConfigValidator] Unknown config keys: ${unknown.join(', ')}`,
+        `[_GasConfigValidator] Unknown config keys: ${unknown.join(', ')}`,
       );
     }
 
@@ -66,7 +66,7 @@ const _ConfigValidator = (() => {
   /**
    * Validate schema structure and defaults.
    *
-   * @param {ConfigSchema} schema
+   * @param {GasConfigSchema} schema
    */
   const validateSchema = (schema) => {
     if (!schema || typeof schema !== 'object') {
@@ -115,7 +115,7 @@ const _ConfigValidator = (() => {
   /**
    * @param {string} key
    * @param {*} value
-   * @param {ConfigSchemaEntry} meta
+   * @param {GasConfigSchemaEntry} meta
    * @returns {boolean}
    */
   const _isInvalid = (value, meta) => {
@@ -131,7 +131,7 @@ const _ConfigValidator = (() => {
   /**
    * @param {string} key
    * @param {*} value
-   * @param {ConfigSchemaEntry} meta
+   * @param {GasConfigSchemaEntry} meta
    * @returns {boolean}
    */
   const _isMissing = (value, meta) => {
