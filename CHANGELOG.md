@@ -6,7 +6,32 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
-## [Unreleased]
+## [1.1.0] - 2026-07-20
+
+### Changed
+
+- **BREAKING:** Updated `gas-config` to support `gas-sheetdb` v1.0.0, replacing the legacy `SheetDb` singleton with an internally managed `GasSheetDb` instance
+- **BREAKING:** `GasConfig` now accepts a `gasSheetDbConfig` constructor option, allowing the underlying `GasSheetDb` instance to be configured with a spreadsheet source (`spreadsheet`, `spreadsheetUrl`, `spreadsheetId`, or `useActiveSpreadsheet`) and optional row configuration
+
+### Documentation
+
+- Updated the README for `gas-sheetdb` v1.0.0, including the new class-based API and constructor examples
+- Documented how to configure the underlying `GasSheetDb` instance through `gasSheetDbConfig`
+- Documented the required `clasp` `filePushOrder` configuration when using `gas-config` alongside `gas-sheetdb`
+- Updated all `git subtree` installation examples to reference `gas-sheetdb` v1.0.0
+- Update all `git subtree` installation examples to reference `gas-config` v1.1.0
+
+---
+
+## [1.0.1] - 2026-07-20
+
+### Changed
+
+- Pinned the `gas-sheetdb` `git subtree` install instructions to tag `0.1.2` to pin current `gas-config` version with a compatible `gas-sheetdb` version before make the changes to support `gas-sheetdb:1.0.0` which contains breaking changes.
+
+---
+
+## [1.0.0] - 2026-07-17
 
 ### Changed
 

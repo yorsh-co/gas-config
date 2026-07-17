@@ -39,7 +39,7 @@ new Date().toLocaleString(locale);
 
 ### Dependencies
 
-`gas-config` depends on [`gas-sheetdb`](https://github.com/yorsh-co/gas-sheetdb), which provides the `SheetDb` library used internally for spreadsheet-backed storage.
+`gas-config` depends on [`gas-sheetdb`](https://github.com/yorsh-co/gas-sheetdb), which provides the `GasSheetDb` class used internally for spreadsheet-backed storage.
 
 You must [install](#quick-start) both repositories in your Apps Script project.
 
@@ -61,7 +61,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  main \
+  1.0.0 \
   --squash
 ```
 
@@ -79,7 +79,7 @@ This repository is intended to be added directly into Apps Script projects using
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  main \
+  1.1.0 \
   --squash
 ```
 
@@ -129,7 +129,7 @@ clasp create --type sheets
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  main \
+  1.0.0 \
   --squash
 ```
 
@@ -149,7 +149,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  main \
+  1.1.0 \
   --squash
 ```
 
@@ -172,6 +172,13 @@ To avoid this, add a [`filePushOrder`](https://github.com/google/clasp#filepusho
 ```json
 {
   "filePushOrder": [
+    "src/lib/gas-sheetdb/module/gas-sheetdb.constants.js",
+    "src/lib/gas-sheetdb/module/gas-sheetdb.codec.js",
+    "src/lib/gas-sheetdb/module/gas-sheetdb.schema.js",
+    "src/lib/gas-sheetdb/module/gas-sheetdb.table.js",
+    "src/lib/gas-sheetdb/module/gas-sheetdb.class.js",
+    "src/lib/gas-sheetdb/module/gas-sheetdb.types.js",
+
     "src/lib/gas-config/module/gas-config.validator.js",
     "src/lib/gas-config/module/gas-config.storage.js",
     "src/lib/gas-config/module/gas-config.class.js",
@@ -198,7 +205,7 @@ clasp push
 
 ### Create a GasConfig Instance
 
-Construct your own `GasConfig` instance with a schema and (optionally) a sheet name, following the [supported structure](#configuration-schema).
+Construct your own `GasConfig` instance with a schema, a spreadsheet (optional) and a sheet name (optional), following the [supported structure](#configuration-schema).
 
 ```js
 const config = new GasConfig({
@@ -362,6 +369,29 @@ The storage layer automatically handles:
 - schema synchronization
 - metadata persistence
 
+You can configure the spreadsheet used in the storage layer by passing an object to the `gasSheetDbConfig` parameter of the `GasConfig` constructor.
+
+```js
+const config = new GasConfig({
+  schema: {...},
+  sheetName: '' // optional sheetName for the config storage sheet
+  gasSheetDbConfig: {
+    // spreadsheet access mode (select one only)
+    spreadsheet, // or
+    spreadsheetUrl, // or
+    spreadsheetId, // or
+    useActiveSpreadsheet // default if no spreadsheet argument is provided
+
+    // row configuration (optional)
+    rowNumbers: {
+      { columnKeys: 1, firstData: 2 } // this is the default configuration
+    },
+  }
+});
+```
+
+See [`gas-sheetdb`'s documentation](https://github.com/yorsh-co/gas-sheetdb#entry-point) for full details.
+
 ### Runtime Cache
 
 Each `GasConfig` instance maintains its own in-memory cache using `Map`.
@@ -380,7 +410,7 @@ Values are loaded lazily (from the spreadsheet) on first access. On subsequent a
 
 Constructor:
 
-- `new GasConfig({ schema, sheetName = '.config' })`
+- `new GasConfig({ schema, sheetName = '.config', gasSheetDbConfig })`
 
 Methods:
 
@@ -398,7 +428,7 @@ Static property on `GasConfig` providing ready-made schema entries (currently `l
 
 Constructor:
 
-- `new _GasConfigStorage(sheetName)`
+- `new _GasConfigStorage(sheetName, gasSheetDbConfig)`
 
 Methods:
 
@@ -432,7 +462,6 @@ function init() {
 
 - Remove stale rows
 - Delete schema entries
-- Define Google Sheets data validation in `CONFIG_SCHEMA` and apply it automatically to the sheet on schema sync
 
 ## License
 
