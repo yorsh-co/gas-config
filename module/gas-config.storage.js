@@ -1,34 +1,36 @@
 /**
  * Spreadsheet-backed persistence layer for configuration data.
  */
-const _ConfigStorage = (() => {
-  const SHEET_NAME = '.config';
-
+class _GasConfigStorage {
   /**
-   * @type {SheetTable|null}
-   * From `SheetDb`.
+   * @param {string} sheetName
    */
-  let table = null;
+  constructor(sheetName) {
+    this._sheetName = sheetName;
+
+    /** @type {SheetTable|null} */
+    this._table = null;
+  }
 
   /**
    * Lazily initialize the config sheet table reference.
    */
-  const _loadTable = () => {
-    if (!table) {
-      table = SheetDb.table(SHEET_NAME);
+  _loadTable() {
+    if (!this._table) {
+      this._table = SheetDb.table(this._sheetName);
     }
-  };
+  }
 
   /**
    * Load persisted configuration entries from storage.
    *
-   * @returns {ConfigData}
+   * @returns {GasConfigData}
    */
-  const load = () => {
-    _loadTable();
+  load() {
+    this._loadTable();
 
-    /** @type {ConfigTableEntry[]} */
-    const entries = table.find();
+    /** @type {GasConfigTableEntry[]} */
+    const entries = this._table.find();
 
     const data = {};
 
@@ -39,16 +41,16 @@ const _ConfigStorage = (() => {
     });
 
     return data;
-  };
+  }
 
   /**
    * @param {object} data
    */
-  const save = (data) => {
-    _loadTable();
+  save(data) {
+    this._loadTable();
 
-    /** @type {ConfigTableEntry[]} */
-    const existingEntries = table.find();
+    /** @type {GasConfigTableEntry[]} */
+    const existingEntries = this._table.find();
 
     const existingEntriesMap = new Map(
       existingEntries.map((entry) => [entry.key, entry]),
@@ -71,28 +73,29 @@ const _ConfigStorage = (() => {
     });
 
     if (updates.length) {
-      table.updateMany(updates);
+      this._table.updateMany(updates);
     }
 
     if (inserts.length) {
-      table.insertMany(inserts);
+      this._table.insertMany(inserts);
     }
-  };
+  }
 
   /**
    * Synchronize schema entries from `CONFIG_SCHEMA` with persistent storage.
    *
-   * @param {ConfigSchema} schema
+   * @param {GasConfigSchema} schema
    */
-  const syncSchema = (schema) => {
-    _loadTable();
+  syncSchema(schema) {
+    this._loadTable();
 
-    /** @type {ConfigTableEntry[]} */
-    const existingEntries = table.find();
+    /** @type {GasConfigTableEntry[]} */
+    const existingEntries = this._table.find();
 
-    const existingEntriesMap = new Map(
-      existingEntries.map((entry) => [entry.key, entry]),
-    );
+    const existingEntriesMap = new Map();
+    for (const entry of existingEntries) {
+      existingEntriesMap.set(entry.key, entry);
+    }
 
     const updates = [];
     const inserts = [];
@@ -109,6 +112,7 @@ const _ConfigStorage = (() => {
             : meta.default;
 
         updates.push({
+
           key,
           value,
           label: meta.label,
@@ -133,17 +137,11 @@ const _ConfigStorage = (() => {
     });
 
     if (updates.length) {
-      table.updateMany(updates);
+      this._table.updateMany(updates);
     }
 
     if (inserts.length) {
-      table.insertMany(inserts);
+      this._table.insertMany(inserts);
     }
-  };
-
-  return Object.freeze({
-    load,
-    save,
-    syncSchema,
-  });
-})();
+  }
+}
