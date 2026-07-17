@@ -159,6 +159,33 @@ This creates:
 src/lib/gas-config/
 ```
 
+#### 8. Configure the file push order
+
+Apps Script executes files by the order in the Apps Script editor, from top to bottom. By default, `clasp push` orders the files alphabetically, by file name. If a file referencing `GasConfig` (including your own project's config instantiation file) is ordered before `gas-config`'s own files, `clasp push` will succeed but running the project will throw:
+
+```txt
+ReferenceError: GasConfig is not defined
+```
+
+To avoid this, add a [`filePushOrder`](https://github.com/google/clasp#filepushorder-optional) entry to your project's `.clasp.json` that pushes `gas-sheetdb` and `gas-config`'s module files ahead of any file that references them:
+
+```json
+{
+  "filePushOrder": [
+    "src/lib/gas-config/module/gas-config.validator.js",
+    "src/lib/gas-config/module/gas-config.storage.js",
+    "src/lib/gas-config/module/gas-config.class.js",
+    "src/lib/gas-config/module/gas-config.presets.js",
+    "src/lib/gas-config/module/gas-config.types.js"
+  ]
+}
+```
+
+Alternatively, you can manually move these files to the top of the file list in the Apps Script editor.
+
+> **Note:**
+> Any file in your own project that constructs a `GasConfig` instance (e.g. `config = new GasConfig({ ... })`) must be pushed *after* the entries above.
+
 #### 8. Push local files to Apps Script
 
 ```bash
