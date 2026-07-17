@@ -30,7 +30,7 @@ Configuration values are displayed and edited in a sheet (`.config` by default, 
 ### Example usage
 
 ```js
-const locale = Config.get('system.locale');
+const locale = config.get('system.locale');
 
 new Date().toLocaleString(locale);
 ```
@@ -184,7 +184,7 @@ To avoid this, add a [`filePushOrder`](https://github.com/google/clasp#filepusho
 Alternatively, you can manually move these files to the top of the file list in the Apps Script editor.
 
 > **Note:**
-> Any file in your own project that constructs a `GasConfig` instance (e.g. `config = new GasConfig({ ... })`) must be pushed *after* the entries above.
+> Any file in your own project that constructs a `GasConfig` instance (e.g. `config = new GasConfig({ ... })`) must be pushed _after_ the entries above.
 
 #### 8. Push local files to Apps Script
 
@@ -342,7 +342,7 @@ The validator layer performs:
 Example:
 
 ```js
-Config.set('system.locale', 'invalid');
+config.set('system.locale', 'invalid');
 ```
 
 Throws:
@@ -394,7 +394,7 @@ Methods:
 
 Static property on `GasConfig` providing ready-made schema entries (currently `locale` and `enableSync`) for common configuration values.
 
-#### \_ConfigStorage
+#### \_GasConfigStorage
 
 Constructor:
 
