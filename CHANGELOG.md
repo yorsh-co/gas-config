@@ -6,6 +6,25 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
+## [Unreleased]
+
+---
+
+## [1.0.0] - 2026-07-17
+
+### Changed
+
+- **Breaking:** Replaced the `Config` singleton with an instantiable `GasConfig` class. Consumers now construct their own instance with `new GasConfig({ schema, sheetName })` instead of relying on a single global config bound to a hardcoded `.config` sheet.
+- **Breaking:** Renamed all public and internal identifiers from `Config`/`_Config*` to `GasConfig`/`_GasConfig*` (`_ConfigStorage` → `_GasConfigStorage`, `_ConfigValidator` → `_GasConfigValidator`, `ConfigSchema`/`ConfigValue`/etc. typedefs → `GasConfig*`).
+- **Breaking:** Replaced the monolithic `CONFIG_SCHEMA` (dotted keys like `system.locale`) with reusable `GasConfig.presets` entries (bare keys like `locale`, `enableSync`) that consumers spread into their own schema when constructing a `GasConfig` instance.
+- Config storage now accepts a configurable sheet name via the constructor instead of a fixed `SHEET_NAME` constant, allowing multiple independently-configured `GasConfig` instances against different sheets.
+
+### Fixed
+
+- `syncSchema()` no longer crashes when syncing against an already-populated `.config` sheet. Update payloads were being rebuilt as fresh object literals containing only schema-derived fields, dropping the `_id`/`_createdAt` metadata that `SheetDb.updateMany` requires on entries returned from `find()`.
+
+---
+
 ## [0.1.0] - 2026-05-26
 
 Initial public release.
