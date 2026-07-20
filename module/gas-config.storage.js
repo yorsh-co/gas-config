@@ -3,9 +3,17 @@
  */
 class _GasConfigStorage {
   /**
+   * @param {{
+   *  spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
+   *  spreadsheetUrl: string,
+   *  spreadsheetId: string,
+   *  useActiveSpreadsheet: boolean,
+   *  rowNumbers: GasSheetDbRowsReference
+   * }} GasSheetDbConfig
    * @param {string} sheetName
    */
-  constructor(sheetName) {
+  constructor(GasSheetDbConfig, sheetName) {
+    this._sheetDb = new GasSheetDb(GasSheetDbConfig);
     this._sheetName = sheetName;
 
     /** @type {SheetTable|null} */
@@ -17,7 +25,7 @@ class _GasConfigStorage {
    */
   _loadTable() {
     if (!this._table) {
-      this._table = SheetDb.table(this._sheetName);
+      this._table = this._sheetDb.table({ sheetName: this._sheetName });
     }
   }
 

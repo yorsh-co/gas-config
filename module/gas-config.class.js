@@ -9,15 +9,22 @@ class GasConfig {
    * @param {Object} options
    * @param {GasConfigSchema} options.schema
    * @param {string} [options.sheetName = '.config']
+   * @param {{
+   *  spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
+   *  spreadsheetUrl: string,
+   *  spreadsheetId: string,
+   *  useActiveSpreadsheet: boolean,
+   *  rowNumbers: GasSheetDbRowsReference
+   * }} options.GasSheetDbConfig // See GasSheetDb documentation for constructor details.
    */
-  constructor({ schema, sheetName = '.config' }) {
+  constructor({ schema, sheetName = '.config', GasSheetDbConfig }) {
     _GasConfigValidator.validateSchema(schema);
 
     /** @type {SchemaValues} */
     this._schema = Object.freeze({ ...schema });
 
     /** @type {_GasConfigStorage} */
-    this._storage = new _GasConfigStorage(sheetName);
+    this._storage = new _GasConfigStorage(GasSheetDbConfig, sheetName);
 
     /** @type  {GasConfigCache|null} */
     this._cache = null;
