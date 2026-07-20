@@ -14,17 +14,17 @@ class GasConfig {
    *  spreadsheetUrl: string,
    *  spreadsheetId: string,
    *  useActiveSpreadsheet: boolean,
-   *  rowNumbers: GasSheetDbRowsReference
-   * }} options.GasSheetDbConfig // See GasSheetDb documentation for constructor details.
+   *  rowNumbers: { columnKeys: number, firstDataRow: number }
+   * }} options.gasSheetDbConfig // See GasSheetDb documentation for constructor details.
    */
-  constructor({ schema, sheetName = '.config', GasSheetDbConfig }) {
+  constructor({ schema, sheetName = '.config', gasSheetDbConfig }) {
     _GasConfigValidator.validateSchema(schema);
 
     /** @type {SchemaValues} */
     this._schema = Object.freeze({ ...schema });
 
     /** @type {_GasConfigStorage} */
-    this._storage = new _GasConfigStorage(GasSheetDbConfig, sheetName);
+    this._storage = new _GasConfigStorage(gasSheetDbConfig, sheetName);
 
     /** @type  {GasConfigCache|null} */
     this._cache = null;

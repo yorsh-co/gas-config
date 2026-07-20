@@ -8,12 +8,12 @@ class _GasConfigStorage {
    *  spreadsheetUrl: string,
    *  spreadsheetId: string,
    *  useActiveSpreadsheet: boolean,
-   *  rowNumbers: GasSheetDbRowsReference
-   * }} GasSheetDbConfig
+   *  rowNumbers: { columnKeys: number, firstDataRow: number }
+   * }} gasSheetDbConfig
    * @param {string} sheetName
    */
-  constructor(GasSheetDbConfig, sheetName) {
-    this._sheetDb = new GasSheetDb(GasSheetDbConfig);
+  constructor(gasSheetDbConfig, sheetName) {
+    this._sheetDb = new GasSheetDb(gasSheetDbConfig);
     this._sheetName = sheetName;
 
     /** @type {SheetTable|null} */
