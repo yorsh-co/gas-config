@@ -79,7 +79,7 @@ This repository is intended to be added directly into Apps Script projects using
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  1.0.1 \
+  1.1.0 \
   --squash
 ```
 
@@ -149,7 +149,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  1.0.1 \
+  1.1.0 \
   --squash
 ```
 
