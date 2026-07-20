@@ -462,7 +462,6 @@ function init() {
 
 - Remove stale rows
 - Delete schema entries
-- Define Google Sheets data validation in `CONFIG_SCHEMA` and apply it automatically to the sheet on schema sync
 
 ## License
 
