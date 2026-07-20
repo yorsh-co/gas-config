@@ -6,7 +6,7 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
-## [Unreleased]
+## [1.1.0] - 2026-07-20
 
 ### Changed
 
@@ -19,6 +19,7 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Documented how to configure the underlying `GasSheetDb` instance through `gasSheetDbConfig`
 - Documented the required `clasp` `filePushOrder` configuration when using `gas-config` alongside `gas-sheetdb`
 - Updated all `git subtree` installation examples to reference `gas-sheetdb` v1.0.0
+- Update all `git subtree` installation examples to reference `gas-config` v1.1.0
 
 ---
 
