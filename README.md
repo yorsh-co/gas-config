@@ -61,7 +61,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  1.0.0 \
+  1.0.1 \
   --squash
 ```
 
@@ -129,7 +129,7 @@ clasp create --type sheets
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  1.0.0 \
+  1.0.1 \
   --squash
 ```
 
