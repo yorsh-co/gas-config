@@ -6,6 +6,14 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
+## [1.1.1] - 2026-07-22
+
+### Changed
+
+- Bump `gas-sheetdb` version number to v1.0.1 to match latest version which includes an important bug fix.
+
+---
+
 ## [1.1.0] - 2026-07-20
 
 ### Changed
