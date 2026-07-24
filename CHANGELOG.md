@@ -6,7 +6,7 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
-## [Unreleased]
+## [1.2.0] - 2026-07-24
 
 ### Changed
 
@@ -17,7 +17,6 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - Added release tooling to publish a consumer-facing `dist` branch
 - Added automatic generation of a minimal release `package.json` for published builds
-
 
 ---
 
