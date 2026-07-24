@@ -4,12 +4,12 @@
 const _GasConfigValidator = (() => {
   /**
    * Validate a single configuration entry.
-   *
-   * @param {string} key
-   * @param {GasConfigValue} value
-   * @param {GasConfigSchema} schema
    */
-  const validateEntry = (key, value, schema) => {
+  const validateEntry = (
+    key: string,
+    value: GasConfigValue,
+    schema: GasConfigSchema,
+  ): void => {
     const meta = schema[key];
 
     if (!meta) throw new Error(`Unknown config key: ${key}`);
@@ -23,12 +23,12 @@ const _GasConfigValidator = (() => {
 
   /**
    * Validate all configuration entries.
-   *
-   * @param {GasConfigData} data
-   * @param {GasConfigSchema} schema
    */
-  const validateEntries = (data, schema) => {
-    const unknown = [];
+  const validateEntries = (
+    data: GasConfigData,
+    schema: GasConfigSchema,
+  ): void => {
+    const unknown: string[] = [];
 
     Object.keys(data).forEach((key) => {
       if (!schema[key]) unknown.push(key);
@@ -40,11 +40,11 @@ const _GasConfigValidator = (() => {
       );
     }
 
-    const missing = [];
-    const invalid = [];
+    const missing: string[] = [];
+    const invalid: string[] = [];
 
     Object.entries(schema).forEach(([key, meta]) => {
-      const value = data?.[key];
+      const value = data[key];
 
       if (_isMissing(value, meta)) {
         missing.push(key);
@@ -65,10 +65,8 @@ const _GasConfigValidator = (() => {
 
   /**
    * Validate schema structure and defaults.
-   *
-   * @param {GasConfigSchema} schema
    */
-  const validateSchema = (schema) => {
+  const validateSchema = (schema: GasConfigSchema): void => {
     if (!schema || typeof schema !== 'object') {
       throw new Error('Config schema must be an object');
     }
@@ -112,29 +110,24 @@ const _GasConfigValidator = (() => {
     });
   };
 
-  /**
-   * @param {string} key
-   * @param {*} value
-   * @param {GasConfigSchemaEntry} meta
-   * @returns {boolean}
-   */
-  const _isInvalid = (value, meta) => {
+  const _isInvalid = (
+    value: GasConfigValue | undefined,
+    meta: GasConfigSchemaEntry | undefined,
+  ): boolean => {
     if (!meta) return true;
 
     if (meta.type && typeof value !== meta.type) return true;
 
-    if (meta.validate && !meta.validate(value)) return true;
+    if (meta.validate && value !== undefined && !meta.validate(value))
+      return true;
 
     return false;
   };
 
-  /**
-   * @param {string} key
-   * @param {*} value
-   * @param {GasConfigSchemaEntry} meta
-   * @returns {boolean}
-   */
-  const _isMissing = (value, meta) => {
+  const _isMissing = (
+    value: GasConfigValue | undefined,
+    meta: GasConfigSchemaEntry | undefined,
+  ): boolean => {
     const valueIsEmpty = value === '' || value === null || value === undefined;
 
     if (valueIsEmpty && !meta?.required) return false;

@@ -1,4 +1,9 @@
-GasConfig.presets = Object.freeze({
+/**
+ * Built-in configuration schema presets. Assigned onto `GasConfig.presets`
+ * by `gas-config.class.ts` (kept in this module, rather than assigning
+ * directly, to avoid a circular import between this file and the class).
+ */
+const GasConfigPresets = Object.freeze({
   locale: {
     type: 'string',
     required: true,
@@ -7,7 +12,7 @@ GasConfig.presets = Object.freeze({
     description:
       'Define the language and region used to format dates, numbers and text. Accepts IETF BCP 47 locale codes.',
     example: 'en-GB',
-    validate: (value) =>
+    validate: (value: GasConfigValue) =>
       typeof value === 'string' && /^[a-z]{2}-[A-Z]{2}$/.test(value),
   },
   enableSync: {
@@ -17,9 +22,9 @@ GasConfig.presets = Object.freeze({
     default: false,
     description: 'Toggle timed synchronization',
     example: true,
-    validate: (value) => typeof value === 'boolean',
+    validate: (value: GasConfigValue) => typeof value === 'boolean',
   },
-});
+}) satisfies Record<string, GasConfigSchemaEntry>;
 
 /**
  * Supported configuration value types.
@@ -27,12 +32,10 @@ GasConfig.presets = Object.freeze({
  * Although complex value types like json and array are supported by `gas-sheetdb`
  * through encoding, their use is discouraged to allow direct editing
  * of the .config sheet without the risk of malformed configuration data.
- *
- * @type {Set<GasConfigValueType>}
  */
-const SUPPORTED_CONFIG_VALUE_TYPES = new Set([
+const SUPPORTED_CONFIG_VALUE_TYPES: ReadonlySet<GasConfigValueType> = new Set([
   'string',
   'number',
   'boolean',
-  'object', // Prefer date objects only
+  'object',
 ]);

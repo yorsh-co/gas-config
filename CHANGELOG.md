@@ -6,6 +6,21 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- Migrated the library implementation from JavaScript to TypeScript with no functional changes
+- Replaced JSDoc-based type definitions with native TypeScript declarations
+
+### Build
+
+- Added release tooling to publish a consumer-facing `dist` branch
+- Added automatic generation of a minimal release `package.json` for published builds
+
+
+---
+
 ## [1.1.1] - 2026-07-22
 
 ### Changed

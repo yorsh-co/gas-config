@@ -24,7 +24,7 @@ Configuration values are displayed and edited in a sheet (`.config` by default, 
 - Caches config data in-memory for speed
 - Lock-safe writes to the spreadsheet thanks to `gas-sheetdb`
 - Custom entry validation support
-- IDE autocomplete typedef support
+- Written in TypeScript with generated JavaScript distribution
 - No external dependencies beyond `gas-sheetdb` and built-in Apps Script services
 
 ### Example usage
@@ -61,7 +61,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  1.0.1 \
+  dist \
   --squash
 ```
 
@@ -79,7 +79,7 @@ This repository is intended to be added directly into Apps Script projects using
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  1.1.0 \
+  dist \
   --squash
 ```
 
@@ -129,7 +129,7 @@ clasp create --type sheets
 git subtree add \
   --prefix=src/lib/gas-sheetdb \
   https://github.com/yorsh-co/gas-sheetdb.git \
-  1.0.1 \
+  dist \
   --squash
 ```
 
@@ -149,7 +149,7 @@ See the [`gas-sheetdb`'s README](https://github.com/yorsh-co/gas-sheetdb#quick-s
 git subtree add \
   --prefix=src/lib/gas-config \
   https://github.com/yorsh-co/gas-config.git \
-  1.1.0 \
+  dist \
   --squash
 ```
 
@@ -172,18 +172,16 @@ To avoid this, add a [`filePushOrder`](https://github.com/google/clasp#filepusho
 ```json
 {
   "filePushOrder": [
-    "src/lib/gas-sheetdb/module/gas-sheetdb.constants.js",
-    "src/lib/gas-sheetdb/module/gas-sheetdb.codec.js",
-    "src/lib/gas-sheetdb/module/gas-sheetdb.schema.js",
-    "src/lib/gas-sheetdb/module/gas-sheetdb.table.js",
-    "src/lib/gas-sheetdb/module/gas-sheetdb.class.js",
-    "src/lib/gas-sheetdb/module/gas-sheetdb.types.js",
+    "dist/lib/gas-sheetdb/gas-sheetdb.constants.js",
+    "dist/lib/gas-sheetdb/gas-sheetdb.codec.js",
+    "dist/lib/gas-sheetdb/gas-sheetdb.schema.js",
+    "dist/lib/gas-sheetdb/gas-sheetdb.table.js",
+    "dist/lib/gas-sheetdb/gas-sheetdb.class.js",
 
-    "src/lib/gas-config/module/gas-config.validator.js",
-    "src/lib/gas-config/module/gas-config.storage.js",
-    "src/lib/gas-config/module/gas-config.class.js",
-    "src/lib/gas-config/module/gas-config.presets.js",
-    "src/lib/gas-config/module/gas-config.types.js"
+    "dist/lib/gas-config/gas-config.validator.js",
+    "dist/lib/gas-config/gas-config.storage.js",
+    "dist/lib/gas-config/gas-config.class.js",
+    "dist/lib/gas-config/gas-config.presets.js"
   ]
 }
 ```
@@ -457,6 +455,12 @@ function init() {
   Logger.log('Configuration synchronized');
 }
 ```
+
+## Development
+
+The source code is written in TypeScript.
+
+Release builds are compiled to JavaScript before publishing so the distributed library remains compatible with Google Apps Script.
 
 ## Planned features
 
