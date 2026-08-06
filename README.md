@@ -180,8 +180,8 @@ To avoid this, add a [`filePushOrder`](https://github.com/google/clasp#filepusho
 
     "dist/lib/gas-config/gas-config.validator.js",
     "dist/lib/gas-config/gas-config.storage.js",
-    "dist/lib/gas-config/gas-config.class.js",
-    "dist/lib/gas-config/gas-config.presets.js"
+    "dist/lib/gas-config/gas-config.presets.js",
+    "dist/lib/gas-config/gas-config.class.js"
   ]
 }
 ```
