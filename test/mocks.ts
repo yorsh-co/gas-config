@@ -19,7 +19,15 @@ export interface MockOptions {
   unavailable?: Scope[];
   /** Script Properties to start with, e.g. `{ 'gasConfig:org': '"Acme"' }`. */
   properties?: Record<string, string>;
+  /**
+   * Email `Session.getActiveUser().getEmail()` returns; an `Error` is thrown
+   * instead, as when the scope is declined. Defaults to `DEFAULT_EMAIL`.
+   */
+  email?: string | Error;
 }
+
+/** Email of the signed-in user unless a test says otherwise. */
+export const DEFAULT_EMAIL = 'editor@example.org';
 
 /**
  * Fresh set of Apps Script service fakes injected as globals.
@@ -28,6 +36,9 @@ export interface MockOptions {
  * as the real one does: `getProperties` returns a copy, `setProperties`
  * rejects non-string values and `deleteAllOthers` clears the rest. Setting
  * `failWrites` makes `setProperties` and `deleteProperty` throw.
+ *
+ * `Session.getActiveUser().getEmail()` returns `options.email`, or throws it
+ * when it is an `Error`; both calls are spies.
  *
  * `LockService` models Apps Script's ownership rules: locks are owned per
  * execution and per scope, so every handle for a scope shares one "held"
@@ -103,6 +114,14 @@ export function createMocks(options: MockOptions = {}) {
     }),
   };
 
+  const user = {
+    getEmail: vi.fn((): string => {
+      const email = options.email ?? DEFAULT_EMAIL;
+      if (email instanceof Error) throw email;
+      return email;
+    }),
+  };
+
   let uuidCounter = 0;
 
   return {
@@ -119,6 +138,7 @@ export function createMocks(options: MockOptions = {}) {
     locks,
     /** Whether this execution currently holds a lock of any scope. */
     isLocked: (): boolean => heldScopes.size > 0,
+    Session: { getActiveUser: vi.fn(() => user), user },
     PropertiesService: {
       getScriptProperties: vi.fn(() => properties),
     },

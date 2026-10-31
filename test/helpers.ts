@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { loadGasConfig } from './harness';
-import type { MockOptions } from './mocks';
+import { DEFAULT_EMAIL, type MockOptions } from './mocks';
 
 /** Spy logger satisfying `GasConfigLogger`. */
 export function createLogger() {
@@ -51,7 +51,10 @@ export const SCHEMA = {
 /** Property name a config key is stored under. */
 export const prop = (key: string): string => `gasConfig:${key}`;
 
-/** Loads the library and a `GasConfig` over `SCHEMA`, with a spy logger. */
+/**
+ * Loads the library and a `GasConfig` over `SCHEMA`, with a spy logger and
+ * the default signed-in user as its only editor.
+ */
 export function setup(
   options: Partial<GasConfigOptions> = {},
   mockOptions: MockOptions = {},
@@ -62,6 +65,7 @@ export function setup(
   const config = new loaded.GasConfig({
     schema: SCHEMA as GasConfigSchema,
     logger,
+    editors: [DEFAULT_EMAIL],
     ...options,
   });
   return { ...loaded, config, logger };

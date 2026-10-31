@@ -38,12 +38,13 @@ export function loadGasConfig(
   globals: Record<string, unknown> = {},
 ): Exports & { mocks: Mocks } {
   const mocks = createMocks(options);
-  const { PropertiesService, LockService, Utilities, console } = mocks;
+  const { PropertiesService, LockService, Session, Utilities, console } = mocks;
 
   return {
     ...load({
       PropertiesService,
       LockService,
+      Session,
       Utilities,
       console,
       Error,

@@ -25,6 +25,7 @@
       "shared/gas-config.validation.ts",
       "gas-config.errors.ts",
       "gas-config.storage.ts",
+      "gas-config.access.ts",
       "gas-config.class.ts"
     ],
     "peers": {

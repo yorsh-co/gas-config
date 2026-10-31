@@ -49,4 +49,11 @@ const _GasConfigErrors = Object.freeze({
       ? new GasConflictError(message)
       : new GasConfigError(message, 409, 'CONFLICT');
   },
+
+  /** 401 `UNAUTHORIZED`: the user is unidentified or not an editor. */
+  unauthorized(message: string): Error {
+    return typeof GasUnauthorizedError === 'function'
+      ? new GasUnauthorizedError(message)
+      : new GasConfigError(message, 401, 'UNAUTHORIZED');
+  },
 });

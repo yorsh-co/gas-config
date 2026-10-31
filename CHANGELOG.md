@@ -15,6 +15,9 @@
 
 ### Added
 
+- `editors` allowlist: emails are trimmed, lowercased, deduplicated and validated as email-shaped, and compared case-insensitively with `Session.getActiveUser().getEmail()`. Omitted or empty means nobody can edit. It is a guard for UI users, not a security boundary: anyone who can edit the script can read and change Script Properties
+- Saves are authorized before the lock is taken or anything is read. An unidentifiable user (Session throws or returns an empty email) and an unlisted user are 401s reading `[GasConfig] Unable to identify the signed-in user` and `[GasConfig] Not authorized`, as gas-webapp's auth middleware, and neither message contains the email; they are `GasUnauthorizedError` when gas-error is loaded, otherwise a `GasConfigError` with status 401 and code `UNAUTHORIZED`
+- Session is read lazily, once per instance. `get()` and `getAll()` are never gated, so non-editors get a read-only view. Requires the `https://www.googleapis.com/auth/userinfo.email` scope
 - Schema types `string`, `text`, `url`, `select`, `date`, `number` and `boolean`, discriminated on `type`, so `type` constrains `default` and unknown keys are type errors
 - Declarative rules `required`, `min`, `max`, `integer`, `maxLength`, `pattern` with `patternMessage` and `options`, plus a server-only `validate(value)` that returns an error message
 - Schema validation in the constructor, throwing `[GasConfig]` errors for malformed keys, types, labels, groups, options, rules and defaults. Nothing touches an Apps Script service until first use
