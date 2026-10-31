@@ -12,6 +12,9 @@ const _GAS_CONFIG_FIELD_TYPES: readonly GasConfigFieldType[] = Object.freeze([
 /** Keys must start with a letter, which keeps internal keys unreachable. */
 const _GAS_CONFIG_KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_.-]*$/;
 
+/** Roughly email-shaped: `x@y.z`, without whitespace. */
+const _GAS_CONFIG_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const _GAS_CONFIG_DEFAULT_TITLE = 'Settings';
 
 const _GAS_CONFIG_DEFAULT_LOCK_TIMEOUT_MS = 30000;
@@ -117,6 +120,7 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   title: string;
   description?: string;
   groups: GasConfigGroup[];
+  /** Normalised emails allowed to change the settings; empty means nobody. */
   editors: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
@@ -134,6 +138,7 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     (value: GasConfigValue) => string | null
   >;
   private readonly _storage: _GasConfigStorage;
+  private readonly _access: _GasConfigAccess;
   private readonly _warned = new Set<string>();
 
   constructor(options: GasConfigOptions<S>) {
@@ -168,6 +173,7 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     this.lockTimeoutMs = this._resolveLockTimeoutMs(options.lockTimeoutMs);
     this.logger = this._resolveLogger(options.logger);
 
+    this._access = new _GasConfigAccess(this.editors);
     this._storage = new _GasConfigStorage(
       this._clientFields,
       this.lockService,
@@ -204,6 +210,23 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   }
 
   /**
+   * Whether the signed-in user may change the settings. Reads Session on
+   * first use.
+   * @internal
+   */
+  _canEdit(): boolean {
+    return this._access.canEdit();
+  }
+
+  /**
+   * The signed-in user's email for change logging, or null when unidentified.
+   * @internal
+   */
+  _userEmail(): string | null {
+    return this._access.identify();
+  }
+
+  /**
    * Returns the cached values with their version and invalid keys.
    * @internal
    */
@@ -213,10 +236,13 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
 
   /**
    * Validates and saves changes under the script lock. There is no public
-   * setter: the settings UI is the writer.
+   * setter: the settings UI is the writer. Throws a 401 before locking or
+   * reading anything unless the signed-in user is an editor.
    * @internal
    */
   _saveChanges(request: GasConfigSaveRequest): GasConfigSaveOutcome {
+    this._access.assertCanEdit();
+
     return this._storage.save(request, (key, value) =>
       this._validateChange(key, value),
     );
@@ -308,7 +334,10 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     });
   }
 
-  /** Validate the editors list, copying it. */
+  /**
+   * Validate the editors list: trimmed, lowercased and deduplicated. Omitted
+   * or empty means nobody can edit.
+   */
   private _resolveEditors(editors?: string[]): string[] {
     if (editors === undefined) return [];
     if (
@@ -319,7 +348,17 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
         '[GasConfig] Invalid "editors": expected an array of non-empty email strings.',
       );
     }
-    return [...editors];
+
+    const normalised = editors.map((email) => email.trim().toLowerCase());
+    const invalid = normalised.find(
+      (email) => !_GAS_CONFIG_EMAIL_PATTERN.test(email),
+    );
+    if (invalid !== undefined) {
+      throw new Error(
+        `[GasConfig] Invalid "editors": "${invalid}" is not an email address.`,
+      );
+    }
+    return [...new Set(normalised)];
   }
 
   /**
