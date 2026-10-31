@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="gas-config.ui.css" />
+  </head>
+  <body>
+    <div id="app" class="app"></div>
+    <noscript>This page needs JavaScript to show your settings.</noscript>
+    <!--
+      Bootstrap placeholder. The server replaces the content of the
+      application/json element below, whose id is gas-config-bootstrap, with
+      the JSON of a GasConfigBootstrap, escaping "<" as "\u003c". The element
+      is kept on one line, with the empty object "{}" as its content, and is the
+      only one of its kind in the built page. "{}" is a valid,
+      empty bootstrap, so the page also runs unreplaced.
+    -->
+    <!-- prettier-ignore -->
+    <script type="application/json" id="gas-config-bootstrap">{}</script>
+    <script src="../../dev/mock-server.js" data-dev-only></script>
+    <script src="../shared/gas-config.validation.js"></script>
+    <script src="gas-config.rpc.js"></script>
+    <script src="gas-config.bootstrap.js"></script>
+    <script src="gas-config.ui.js"></script>
+  </body>
+</html>

@@ -63,6 +63,11 @@ interface GasConfigSettingsState {
   groups: GasConfigGroup[];
   fields: GasConfigClientField[];
   values: Record<string, GasConfigValue>;
+  /**
+   * Keys whose stored value failed validation. `values` carries the stored
+   * value for them, so the UI can show it flagged from the first render.
+   */
+  invalid?: string[];
 }
 
 /** Payload of `saveSettings`: only the changed keys. */
@@ -122,3 +127,37 @@ type GasConfigRpcRequest = {
     payload: GasConfigRpcMethods[M]['payload'];
   };
 }[GasConfigRpcMethod];
+
+/**
+ * The error `GasConfigRpc` throws, serialised as `Error(JSON.stringify(...))`
+ * and parsed by the browser client. Same shape as gas-webapp's envelope.
+ */
+interface GasConfigErrorEnvelope {
+  ok: false;
+  status: number;
+  code: string;
+  error: string;
+  details?: unknown;
+}
+
+/** Page surfaces the UI renders for. */
+type GasConfigSurface = 'dialog' | 'sidebar' | 'page';
+
+/** Built-in visual themes. */
+type GasConfigTheme = 'workspace' | 'yorsh';
+
+/**
+ * JSON the server embeds in the page's `#gas-config-bootstrap` element. Every
+ * key is optional: an empty object makes the UI fetch its own state.
+ */
+interface GasConfigBootstrap {
+  surface?: GasConfigSurface;
+  theme?: GasConfigTheme;
+  brand?: {
+    /** Validated CSS colour, applied as `--color-primary`. */
+    primaryColor?: string;
+    logoUrl?: string;
+  };
+  /** When present, rendered immediately with no `getSettings` call. */
+  state?: GasConfigSettingsState;
+}

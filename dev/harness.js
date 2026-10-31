@@ -1,5 +1,5 @@
 /**
- * Development harness: hosts ui.html in an imitation of each Workspace
+ * Development harness: hosts the UI document in an imitation of each Workspace
  * surface so the UI can be judged in context. Not part of the product.
  */
 (function () {
@@ -33,6 +33,10 @@
         ['conflict', 'Edit conflict'],
         ['readonly', 'Not the owner'],
         ['load-error', 'Load failure'],
+        ['unauthorized', 'Unauthorized'],
+        ['timeout', 'Save timeout'],
+        ['timeout-twice', 'Save timeout (twice)'],
+        ['stored-invalid', 'Invalid stored value'],
       ],
     },
   ];
@@ -166,14 +170,14 @@
   /**
    * @param {number} [width] Fixed width in pixels.
    * @param {number} [height] Fixed height in pixels.
-   * @returns {HTMLIFrameElement} The frame hosting ui.html for the selection.
+   * @returns {HTMLIFrameElement} The frame hosting the UI for the selection.
    */
   function createFrame(width, height) {
     var query = new URLSearchParams(selection).toString();
     frame = el('iframe', {
       class: 'frame',
       title: 'Settings',
-      src: 'ui.html?' + query,
+      src: '/src/web/gas-config.ui.html?' + query,
     });
     if (width) frame.style.width = width + 'px';
     if (height) frame.style.height = height + 'px';
