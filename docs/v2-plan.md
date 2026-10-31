@@ -1,10 +1,10 @@
 # gas-config 2.0 plan
 
-Status: draft, revised 2026-10-31 against the released gas-webapp 1.0.0 (see [Findings from gas-webapp 1.0.0](#findings-from-gas-webapp-100)). Ready to start once the [open questions](#open-questions) are answered.
+Status: accepted 2026-10-31, revised against the released gas-webapp 1.0.0 (see [Findings from gas-webapp 1.0.0](#findings-from-gas-webapp-100)). Every open question is resolved (see [Resolved questions](#resolved-questions)).
 
 ## Goal
 
-Let a management team configure an Apps Script project from a user-friendly interface that feels native to Google Workspace, or carries the owner's business brand, never a third-party tool. Configuration holds values that change and help with setup. Secrets stay out of scope until [Secrets](#secrets) is decided.
+Let a management team configure an Apps Script project from a user-friendly interface that feels native to Google Workspace, or carries the owner's business brand, never a third-party tool. Configuration holds values that change and help with setup. Secrets are deferred to 2.1 (see [Secrets](#secrets)).
 
 ## Decisions made
 
@@ -200,15 +200,17 @@ Requirements, if accepted:
 
 Access and refresh tokens are written by code at runtime, change on their own, and may be per user. They are not configuration. Use a token store designed for them, such as Google's [`apps-script-oauth2`](https://github.com/googleworkspace/apps-script-oauth2) library, which handles the authorization flow, refresh and storage in user or script properties. gas-config could hold that service's client ID and client secret as `secret` fields, which is where the two meet.
 
-## Open questions
+## Resolved questions
 
-1. **Allowlist management.** Recommended: `editors` defined in code for 2.0. It is simple, versioned in git, and nothing in the UI can change it. Alternative: a list managed in the UI by an `admins` role. Is the code-defined list enough for 2.0?
-2. **Allowlist shape.** gas-webapp takes a policy function, `isAuthorized(email)`. Recommended: `editors: string[]` for gas-config, which is what a configuration screen needs and is harder to get wrong. Alternative: accept `isAuthorized` as well, for parity. Is the list alone enough?
-3. **Users who are not editors.** Recommended: they see the read-only view the prototype already has, with `Only listed editors can change these settings.` Alternative: `getSettings()` refuses them with a 401, which matters if secrets are added. Read-only or refused?
-4. **Generated HTML file.** Recommended: commit it, guarded by `html --check`, as with lockfiles, so a fresh clone, `npm test` and bundling work without a build first. Alternative: ignore it in git, as gas-webapp ignores `.manual-webapp/`, and generate it before typecheck and tests.
-5. **Invalid stored value.** With Properties this only happens after a schema change, such as a lowered `max`. Recommended: `get()` returns the default and logs a warning, and the UI shows the stored value flagged so an editor fixes it.
-6. **Date values.** Recommended: `get()` returns `'YYYY-MM-DD'`, avoiding timezone surprises. Alternative: a `Date`.
-7. **Page surface in a gas-webapp project.** Option A (the consumer's `doGet` short-circuits to `createHtmlOutput()`) or option B (gas-webapp 1.1 sends an `HtmlOutput` from a route)? Recommended: A for 2.0, B as a follow-up if a project needs the settings page behind its middleware.
-8. **Playwright.** No gas-\* repository uses it yet. Recommended: add it as a dev dependency for the browser flows; the prototype review caught a lost Save click that only a real browser reproduces. Alternative: Vitest with a DOM library, which is faster but misses layout and focus behaviour.
-9. **Secrets.** Include the write-only `secret` type with `secretEditors` in 2.0, defer it to 2.1, or leave secrets out of gas-config?
-10. **Secret Manager.** If secrets are included, is an optional Secret Manager backend wanted for high-value keys, or are Script Properties enough?
+| #   | Question                         | Decision                                                                                                                              |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Allowlist management             | `editors` defined in code. A UI-managed list with an `admins` role may follow later                                                   |
+| 2   | Allowlist shape                  | `editors: string[]` only; no `isAuthorized` policy function                                                                           |
+| 3   | Users who are not editors        | Read-only view, with `Only listed editors can change these settings.`                                                                 |
+| 4   | Generated HTML file              | Committed, guarded by `html --check`                                                                                                  |
+| 5   | Invalid stored value             | `get()` returns the default and logs a warning; the UI shows the stored value flagged as an error                                     |
+| 6   | Date values                      | `get()` returns `'YYYY-MM-DD'` strings                                                                                                |
+| 7   | Page surface in a gas-webapp app | Option A for 2.0: the consumer's `doGet` returns `createHtmlOutput()` for its settings path. Option B (gas-webapp 1.1) is a follow-up |
+| 8   | Browser flow tests               | Playwright, as a dev dependency                                                                                                       |
+| 9   | Secrets                          | Deferred to 2.1. The [Secrets](#secrets) section stands as its design                                                                 |
+| 10  | Secret Manager                   | Not planned; revisit with secrets in 2.1                                                                                              |
