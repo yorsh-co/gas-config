@@ -2,6 +2,14 @@
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Settings UI prototype under `prototype/`: schema-driven sidebar, dialog and web page surfaces with Workspace and Yorsh themes, a mock server with failure scenarios and a development harness; not part of the release
+
+---
+
 ## [1.2.1] - 2026-08-06
 
 ### Docs
