@@ -29,13 +29,19 @@
 - Wire types for the settings UI contract (`GasConfigSettingsState`, `GasConfigClientField`, `GasConfigSaveRequest`, `GasConfigSaveResponse`, `GasConfigRpcRequest`) in `src/shared/gas-config.contract.types.ts`
 - Canonical peer declarations for gas-lock, gas-error and gas-logger under `src/internal/`
 - Vitest suites over fakes of `PropertiesService`, `LockService`, `Utilities` and `console`, covering every validation rule, the schema checks, reads, saves, locking and the 1.x defects the plan lists, and a compile-time check of the schema and `get()` types (`test/gas-config.types-check.ts`)
-- Settings UI prototype under `prototype/`: schema-driven sidebar, dialog and web page surfaces with Workspace and Yorsh themes, a mock server with failure scenarios and a development harness; not part of the release
+- The settings UI in `src/web/`: a schema-driven sidebar, dialog and web page with Workspace and Yorsh themes, ported from the approved prototype. It is written as `.html`, `.css` and TypeScript, and built by `gas-dev-config html` into the committed `src/generated/gas-config.ui.html.ts` (`_GAS_CONFIG_UI_HTML`), which is listed in `loadOrder`
+- The UI validates with the shared `GasConfigValidation`, reads its `surface`, `theme`, brand colour and initial state from a `#gas-config-bootstrap` JSON element (rendering the embedded state with no `getSettings` call), and shows keys flagged in the new optional `invalid` list of the settings state as errors from the first render
+- Saves carry a fresh `saveId`. A save that times out is retried once with the same `saveId` (`Couldn't confirm the save. Retrying…`), then offers `Try again` (`Your changes may not have been saved. Try again to check.`). An `UNAUTHORIZED` failure switches the UI to read-only. Non-editors see `Only listed editors can change these settings.`
+- `GasConfigRpcClient` (`src/web/gas-config.rpc.ts`): a promise wrapper over `google.script.run.GasConfigRpc` with a per-call timeout (30 s by default, code `CLIENT_TIMEOUT`) that parses the server's JSON error envelope into a failure carrying `status` and `code`; plus `GasConfigErrorEnvelope`, `GasConfigBootstrap`, `GasConfigSurface` and `GasConfigTheme` in the contract types
+- `dev/`: a development harness that hosts the real UI in an imitation of each Workspace surface, a mock server that implements `GasConfigRpc` with failure scenarios (`unauthorized`, `timeout`, `timeout-twice` and `stored-invalid` among them), and `npm run dev`, a dependency-free server that transpiles the browser TypeScript on request; none of it is part of the release
+- Vitest tests for the RPC client and the bootstrap reader over a fake `google.script.run`, and for the generated page, and Playwright end-to-end tests (`npm run test:e2e`, not part of `npm run check`) over the harness
 
 ### Changed
 
-- Prettier, TypeScript and ESLint are now shared through [`gas-dev-config`](https://github.com/yorsh-co/gas-dev-config): `.prettierrc.json` is replaced by a `prettier` key in `package.json`, `tsconfig.json` extends the `gas` preset (target ES2020, previously ES2021) and `eslint.config.js` uses `gasEslint()`, keeping the `prototype/` browser scripts linted
+- Prettier, TypeScript and ESLint are now shared through [`gas-dev-config`](https://github.com/yorsh-co/gas-dev-config): `.prettierrc.json` is replaced by a `prettier` key in `package.json`, `tsconfig.json` extends the `gas` preset (target ES2020, previously ES2021) and `eslint.config.js` uses `gasEslint()`, keeping the `dev/` browser scripts linted
 - Releases are published with [`gas-dev-release`](https://github.com/yorsh-co/gas-dev-release) instead of `scripts/release.sh`
 - `npm run check` now also runs the tests and `gas-dev-config check`, and `typecheck` also checks `tsconfig.test.json`
+- `gas-dev-config` is now `^1.6.0`, for the `html` command. `build` runs `build:frontend` (`gas-dev-config html`) then `build:backend` (`tsc -p tsconfig.json`), `typecheck` also checks `tsconfig.frontend.json` and `tsconfig.e2e.json`, and `eslint.config.js` lints `src/web/` as browser code. `tsconfig.frontend.json` emits nothing: the `html` command transpiles the browser sources itself
 - Added `.github/dependabot.yml`: one weekly grouped pull request for development dependencies, against `develop`
 - Added `gasDevConfig.loadOrder` to `package.json`, and Vitest suites that evaluate the sources in that order
 - `src/internal/gas-config.peer.types.ts` is renamed to `.d.ts` so the ambient declarations emit nothing into `dist/`
@@ -45,6 +51,7 @@
 
 - The 1.x sources (`gas-config.presets.ts`, `gas-config.validator.ts`, the sheet-backed class, storage and types), the stale gas-sheetdb declarations and the 1.x load test
 - `scripts/release.sh` and `scripts/write-release-package-json.js`
+- `prototype/`: its UI is now `src/web/`, its validation is `src/shared/gas-config.validation.ts`, and the harness and mock server moved to `dev/`
 - The `@eslint/js`, `typescript-eslint` and `eslint-config-prettier` dev dependencies, now provided by `gas-dev-config`
 
 ---

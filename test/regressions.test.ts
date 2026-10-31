@@ -176,13 +176,19 @@ describe('lesson: no work at construction', () => {
 });
 
 describe('lesson: Apps Script sources have no async or await (P8)', () => {
+  // Browser sources may use them, and the generated page only holds them
+  // inside a string.
+  const EXEMPT = [join(ROOT, 'src', 'web'), join(ROOT, 'src', 'generated')];
+
   const sources = (directory: string): string[] =>
     readdirSync(directory, { withFileTypes: true }).flatMap((entry) =>
-      entry.isDirectory()
-        ? sources(join(directory, entry.name))
-        : entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')
-          ? [join(directory, entry.name)]
-          : [],
+      EXEMPT.includes(join(directory, entry.name))
+        ? []
+        : entry.isDirectory()
+          ? sources(join(directory, entry.name))
+          : entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')
+            ? [join(directory, entry.name)]
+            : [],
     );
 
   it.each(sources(join(ROOT, 'src')))('%s has none', (file) => {

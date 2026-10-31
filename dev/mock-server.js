@@ -1,6 +1,10 @@
 /**
  * Browser stand-in for `google.script.run` and `google.script.host`, backed by
- * an in-memory settings store. Scenarios are selected with `?scenario=`.
+ * an in-memory settings store. It implements `GasConfigRpc(method, payload)`
+ * like the server, failures included: they are errors whose message is the
+ * JSON error envelope. Scenarios are selected with `?scenario=`.
+ *
+ * Marked `data-dev-only` in the UI document, so it is never built into it.
  */
 var google = (function () {
   'use strict';
@@ -14,7 +18,7 @@ var google = (function () {
     title: 'Settings',
     description:
       'These settings control how this project runs. Changes apply the next time it runs.',
-    brand: { logoUrl: 'assets/yorsh-mark.svg' },
+    brand: { logoUrl: '/dev/assets/yorsh-mark.svg' },
     groups: [
       { id: 'general', label: 'General' },
       { id: 'form', label: 'Google Form' },
@@ -125,6 +129,8 @@ var google = (function () {
     ],
   };
 
+  var NEVER = {};
+
   var store = {
     values: {
       'org.name': 'Riverside Learning Trust',
@@ -138,15 +144,29 @@ var google = (function () {
       'notify.footer': 'Questions? Reply to this email.',
     },
     version: 1,
+    lastSaveId: null,
   };
   var loadFailed = false;
   var conflictServed = false;
+  var unanswered = 0;
+
+  /**
+   * @param {number} status
+   * @param {string} code
+   * @param {string} message
+   * @returns {Error} An error carrying the server's JSON error envelope.
+   */
+  function envelopeError(status, code, message) {
+    return new Error(
+      JSON.stringify({ ok: false, status: status, code: code, error: message }),
+    );
+  }
 
   /**
    * @returns {object} A deep copy of the current SettingsState.
    */
   function snapshot() {
-    return JSON.parse(
+    var state = JSON.parse(
       JSON.stringify(
         Object.assign({}, schema, {
           canEdit: scenario !== 'readonly',
@@ -155,20 +175,34 @@ var google = (function () {
         }),
       ),
     );
+    if (scenario === 'stored-invalid') {
+      state.values['form.url'] = 'http://docs.google.com/forms/d/abc/edit';
+      state.invalid = ['form.url'];
+    }
+    return state;
   }
 
   var handlers = {
     getSettings: function () {
       if (scenario === 'load-error' && !loadFailed) {
         loadFailed = true;
-        throw new Error('Settings could not be loaded.');
+        throw envelopeError(
+          500,
+          'INTERNAL_ERROR',
+          'Settings could not be loaded.',
+        );
       }
       return snapshot();
     },
 
     saveSettings: function (request) {
-      if (scenario === 'readonly') {
-        throw new Error('Only the script owner can change these settings.');
+      if (scenario === 'readonly' || scenario === 'unauthorized') {
+        throw envelopeError(401, 'UNAUTHORIZED', 'Not authorized');
+      }
+      var unansweredSaves = { timeout: 1, 'timeout-twice': 2 }[scenario] || 0;
+      if (unanswered < unansweredSaves) {
+        unanswered += 1;
+        return NEVER;
       }
       if (scenario === 'conflict' && !conflictServed) {
         conflictServed = true;
@@ -176,6 +210,13 @@ var google = (function () {
         return {
           ok: false,
           reason: 'conflict',
+          version: String(store.version),
+        };
+      }
+      if (request.saveId && request.saveId === store.lastSaveId) {
+        return {
+          ok: true,
+          values: JSON.parse(JSON.stringify(store.values)),
           version: String(store.version),
         };
       }
@@ -199,6 +240,7 @@ var google = (function () {
 
       store.values = merged;
       store.version += 1;
+      store.lastSaveId = request.saveId;
       return {
         ok: true,
         values: JSON.parse(JSON.stringify(merged)),
@@ -206,6 +248,20 @@ var google = (function () {
       };
     },
   };
+
+  /**
+   * Routes a call like the server's `GasConfigRpc`.
+   *
+   * @param {string} method
+   * @param {*} payload
+   * @returns {*} The result; `NEVER` when the call is never answered.
+   */
+  function GasConfigRpc(method, payload) {
+    if (!Object.prototype.hasOwnProperty.call(handlers, method)) {
+      throw envelopeError(404, 'NOT_FOUND', 'Unknown method: ' + method);
+    }
+    return handlers[method](payload);
+  }
 
   /**
    * Creates a runner carrying the given callbacks, like `google.script.run`.
@@ -223,20 +279,19 @@ var google = (function () {
         return createRunner(onSuccess, fn);
       },
     };
-    Object.keys(handlers).forEach(function (name) {
-      runner[name] = function (arg) {
-        window.setTimeout(function () {
-          var result;
-          try {
-            result = handlers[name](arg);
-          } catch (error) {
-            if (onFailure) onFailure(error);
-            return;
-          }
-          if (onSuccess) onSuccess(result);
-        }, latency);
-      };
-    });
+    runner.GasConfigRpc = function (method, payload) {
+      window.setTimeout(function () {
+        var result;
+        try {
+          result = GasConfigRpc(method, payload);
+        } catch (error) {
+          if (onFailure) onFailure(error);
+          return;
+        }
+        if (result === NEVER) return;
+        if (onSuccess) onSuccess(result);
+      }, latency);
+    };
     return runner;
   }
 
