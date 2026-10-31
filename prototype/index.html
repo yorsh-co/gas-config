@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings UI harness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="harness.css" />
+  </head>
+  <body>
+    <header class="toolbar" role="toolbar" aria-label="Harness controls">
+      <span class="toolbar-brand">Dev harness</span>
+      <div id="controls" class="toolbar-controls"></div>
+      <button type="button" id="reload" class="tool-btn">Reload</button>
+    </header>
+    <main id="stage" class="stage"></main>
+    <noscript>This harness needs JavaScript.</noscript>
+    <script src="harness.js"></script>
+  </body>
+</html>
