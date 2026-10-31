@@ -41,13 +41,21 @@
         "out": "src/generated/gas-config.ui.html.ts",
         "name": "_GAS_CONFIG_UI_HTML"
       }
-    ]
+    ],
+    "gasTest": {
+      "scopes": [
+        "https://www.googleapis.com/auth/script.storage",
+        "https://www.googleapis.com/auth/userinfo.email"
+      ]
+    }
   },
   "devDependencies": {
+    "@google/clasp": "^3.4.1",
     "@playwright/test": "~1.63.0",
     "@types/google-apps-script": "^2.0.11",
     "@types/node": "^22.20.5",
     "eslint": "^10.7.0",
+    "gas-dev-bundle": "github:yorsh-co/gas-dev-bundle#semver:^1.1.1",
     "gas-dev-config": "github:yorsh-co/gas-dev-config#semver:^1.6.0",
     "gas-dev-release": "github:yorsh-co/gas-dev-release#semver:^1.1.0",
     "globals": "^17.7.0",
@@ -65,11 +73,12 @@
     "build:format": "npm run check && npm run build && npm run format:dist",
     "build:watch": "trap \"trap - INT TERM; kill 0\" INT TERM; tsc -p tsconfig.json --watch --preserveWatchOutput & tsc -p tsconfig.frontend.json --watch --preserveWatchOutput & wait",
     "build:release": "npm run build:format && npm run release",
-    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend && npm run typecheck:test && npm run typecheck:e2e",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend && npm run typecheck:test && npm run typecheck:e2e && npm run typecheck:gas-test",
     "typecheck:backend": "tsc -p tsconfig.json --noEmit && echo \"✓ TypeScript passed (backend)\"",
     "typecheck:frontend": "tsc -p tsconfig.frontend.json && echo \"✓ TypeScript passed (frontend)\"",
     "typecheck:test": "tsc -p tsconfig.test.json && echo \"✓ TypeScript passed (test)\"",
     "typecheck:e2e": "tsc -p tsconfig.e2e.json && echo \"✓ TypeScript passed (e2e)\"",
+    "typecheck:gas-test": "tsc -p gas-test/tsconfig.json --noEmit && echo \"✓ TypeScript passed (gas-test)\"",
     "lint": "eslint . && echo '✓ Lint passed'",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
@@ -79,6 +88,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "node dev/serve.js",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:gas:build": "gas-dev-config gas-test build",
+    "test:gas": "gas-dev-config gas-test run",
+    "manual:build": "npm run build && node scripts/build-manual-config.js"
   }
 }
