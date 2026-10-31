@@ -1,6 +1,6 @@
 /** Codes of the expected failures gas-config throws. */
 type GasConfigErrorCode =
-  'VALIDATION_ERROR' | 'CONFLICT' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';
+  'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';
 
 /**
  * Expected failure thrown when gas-error is not loaded. Carries the same
@@ -42,13 +42,6 @@ const _GasConfigErrors = Object.freeze({
     return typeof GasValidationError === 'function'
       ? new GasValidationError(message, details)
       : new GasConfigError(message, 400, 'VALIDATION_ERROR', details);
-  },
-
-  /** 409 `CONFLICT`: the stored settings changed since they were read. */
-  conflict(message: string): Error {
-    return typeof GasConflictError === 'function'
-      ? new GasConflictError(message)
-      : new GasConfigError(message, 409, 'CONFLICT');
   },
 
   /** 401 `UNAUTHORIZED`: the user is unidentified or not an editor. */
