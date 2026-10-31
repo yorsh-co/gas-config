@@ -8,6 +8,21 @@
 
 - Settings UI prototype under `prototype/`: schema-driven sidebar, dialog and web page surfaces with Workspace and Yorsh themes, a mock server with failure scenarios and a development harness; not part of the release
 
+### Changed
+
+- Prettier, TypeScript and ESLint are now shared through [`gas-dev-config`](https://github.com/yorsh-co/gas-dev-config): `.prettierrc.json` is replaced by a `prettier` key in `package.json`, `tsconfig.json` extends the `gas` preset (target ES2020, previously ES2021) and `eslint.config.js` uses `gasEslint()`, keeping the `prototype/` browser scripts linted
+- Releases are published with [`gas-dev-release`](https://github.com/yorsh-co/gas-dev-release) instead of `scripts/release.sh`
+- `npm run check` now also runs the tests and `gas-dev-config check`, and `typecheck` also checks `tsconfig.test.json`
+- Added `.github/dependabot.yml`: one weekly grouped pull request for development dependencies, against `develop`
+- Added `gasDevConfig.loadOrder` to `package.json` and a Vitest load test that evaluates the sources in that order
+- `src/internal/gas-config.peer.types.ts` is renamed to `.d.ts` so the ambient declarations emit nothing into `dist/`
+- Updated transitive dev dependencies with `npm audit fix`, resolving the high-severity `brace-expansion` advisory
+
+### Removed
+
+- `scripts/release.sh` and `scripts/write-release-package-json.js`
+- The `@eslint/js`, `typescript-eslint` and `eslint-config-prettier` dev dependencies, now provided by `gas-dev-config`
+
 ---
 
 ## [1.2.1] - 2026-08-06
