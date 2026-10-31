@@ -145,7 +145,7 @@ interface GasConfigPageOptions {
 interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   schema: S;
   groups?: GasConfigGroup[];
-  /** Emails allowed to change the settings. Enforced from the access phase. */
+  /** Emails allowed to change the settings. Omitted or empty means nobody. */
   editors?: string[];
   /** @default 'Settings' */
   title?: string;

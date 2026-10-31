@@ -2,7 +2,7 @@
 
 Some behaviour only exists inside a real Google Workspace host: the authorization prompt, how a modal dialog and a sidebar are sized, what `Session` returns for each kind of user, and how `HtmlService` serves the page. `clasp run` has no UI context, so `npm run test:gas` cannot exercise any of it. This folder holds a small consumer project that exposes all of it, and the checklist to run against it.
 
-The fixture is `app.js` and `appsscript.json`. `npm run manual:build` assembles it with the bundled peers (gas-error, gas-lock, gas-logger) and the compiled library into `.manual-config/`, which `clasp` pushes. `appsscript.json` declares no `oauthScopes` on purpose: Apps Script detects the scopes from the code, and check 1 verifies that list.
+The fixture is `app.js` and `appsscript.json`. `npm run manual:build` assembles it with the bundled peers (gas-error, gas-lock, gas-logger) and the compiled library into `.manual-config/`, which `clasp` pushes. `appsscript.json` declares no `oauthScopes` on purpose: Apps Script detects the scopes from the code, and check 1 verifies that list against the [Scopes](../README.md#scopes) the README documents (`userinfo.email` and `script.container.ui`).
 
 > **Warning:**
 > The web app deploys with **Execute as: User accessing the web app** and **access: Anyone with a Google account**. Use a throwaway project and a throwaway container, and **archive the deployment** (Deploy, Manage deployments) when the checks are done.
@@ -67,7 +67,7 @@ Run with a signed-in editor unless the row says otherwise. Add the container and
 
 ## After the checks
 
-1. Record the results below, and copy anything surprising into the README's platform notes.
+1. Record the results below, and copy anything that holds for every user into the README's [Platform limitations](../README.md#platform-limitations).
 2. Archive the deployment (Deploy, Manage deployments), or delete the project and container.
 3. `rm -rf .manual-config`, and unset `MANUAL_CONFIG_SCRIPT_ID`.
 
@@ -100,7 +100,7 @@ Copy this section, fill it in and keep it with the release notes.
 | 15  |                      |                          |       |
 | 16  |                      |                          |       |
 
-Observations to record for the README's platform notes:
+Observations to record for the README's Platform limitations:
 
 | Observation                                                       | Value |
 | ----------------------------------------------------------------- | ----- |

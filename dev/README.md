@@ -1,6 +1,6 @@
 # Development harness
 
-Local environment for the gas-config settings UI, which lives in `src/web/`. Everything here is for development: it is not shipped and not built into the UI. Only `dist/` is released.
+Local environment for the gas-config settings UI, which lives in `src/web/`. See the [README](../README.md#editing-the-ui) for how it is built and released. Everything here is for development: it is not shipped and not built into the UI. Only `dist/` is released.
 
 The harness loads the real UI sources (`src/web/gas-config.ui.html` and its scripts), not a copy. A mock server stands in for `google.script.run`, so the UI runs in a browser with no Apps Script deployment.
 
@@ -13,6 +13,8 @@ npm run dev
 starts `dev/serve.js`, a dependency-free Node server, and prints its address (`http://127.0.0.1:5173/` unless `PORT` is set). It serves the repository root read-only, refuses anything outside it or hidden (such as `.git`), sends no-cache headers, and redirects `/` to `/dev/index.html`.
 
 A browser request for `src/**/*.js` with no such file but a sibling `.ts` is answered with that TypeScript transpiled on the fly (ES2020, no module system), the same way `gas-dev-config html` transpiles it, so edits show on reload.
+
+`npm run test:e2e` starts the same server on port 5174 (or `PORT`) for the Playwright flows, so it can run beside `npm run dev`.
 
 The UI can also be opened on its own at `/src/web/gas-config.ui.html` with `?surface=`, `?theme=` and `?scenario=` query parameters. `surface` and `theme` are only a fallback for what the page's bootstrap lacks (see below); `scenario` is read by the mock server alone.
 

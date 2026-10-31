@@ -14,11 +14,6 @@ class GasValidationError extends Error {
   }
 }
 
-class GasConflictError extends Error {
-  statusCode = 409;
-  code = 'CONFLICT';
-}
-
 describe('errors: without gas-error', () => {
   it('builds a validation GasConfigError', () => {
     const { _GasConfigErrors, GasConfigError } = loadGasConfig();
@@ -40,20 +35,6 @@ describe('errors: without gas-error', () => {
     expect(error.stack).toContain('Bad input');
   });
 
-  it('builds a conflict GasConfigError', () => {
-    const { _GasConfigErrors, GasConfigError } = loadGasConfig();
-
-    const error = _GasConfigErrors.conflict('[GasConfig] Moved on');
-
-    expect(error).toBeInstanceOf(GasConfigError);
-    expect(error).toMatchObject({
-      statusCode: 409,
-      code: 'CONFLICT',
-      details: undefined,
-      isOperational: true,
-    });
-  });
-
   it('is what a malformed save throws', () => {
     const { config, GasConfigError } = setup();
 
@@ -64,19 +45,16 @@ describe('errors: without gas-error', () => {
 });
 
 describe('errors: with gas-error', () => {
-  const globals = { GasValidationError, GasConflictError };
+  const globals = { GasValidationError };
 
   it('builds the gas-error classes', () => {
     const { _GasConfigErrors, GasConfigError } = loadGasConfig({}, globals);
 
     const validation = _GasConfigErrors.validation('[GasConfig] Bad', { a: 1 });
-    const conflict = _GasConfigErrors.conflict('[GasConfig] Moved on');
 
     expect(validation).toBeInstanceOf(GasValidationError);
     expect(validation).not.toBeInstanceOf(GasConfigError);
     expect(validation).toMatchObject({ details: { a: 1 } });
-    expect(conflict).toBeInstanceOf(GasConflictError);
-    expect(conflict).not.toBeInstanceOf(GasConfigError);
   });
 
   it('is what a malformed save throws', () => {
