@@ -117,6 +117,30 @@ interface GasConfigLogger {
   warn(msg: string, meta?: Record<string, unknown>): void;
 }
 
+/** Brand overrides of the settings UI. */
+interface GasConfigBrand {
+  /** `#rgb` or `#rrggbb`. Replaces the theme's primary colour. */
+  primaryColor?: string;
+  /** An `https:` URL or a `data:image/` URI, shown by the `yorsh` theme. */
+  logoUrl?: string;
+}
+
+/** Options of `GasConfig.showDialog`. */
+interface GasConfigDialogOptions {
+  /** @default the `title` of the instance */
+  title?: string;
+  /** In pixels. @default 600 */
+  width?: number;
+  /** In pixels. @default 560 */
+  height?: number;
+}
+
+/** Options of `GasConfig.showSidebar` and `GasConfig.createHtmlOutput`. */
+interface GasConfigPageOptions {
+  /** @default the `title` of the instance */
+  title?: string;
+}
+
 /** Options of the `GasConfig` constructor. */
 interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   schema: S;
@@ -126,6 +150,9 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   /** @default 'Settings' */
   title?: string;
   description?: string;
+  /** Visual theme of the settings UI. @default 'workspace' */
+  theme?: GasConfigTheme;
+  brand?: GasConfigBrand;
   /** @default writes to the execution log, prefixed `[GasConfig]` */
   logger?: GasConfigLogger;
   /** @default the `GasLock` global when loaded, else an internal fallback calling LockService directly */
@@ -142,6 +169,11 @@ interface GasConfigSnapshot {
   version: string;
   /** Keys whose stored value is unusable and was replaced by the default. */
   invalid: string[];
+  /**
+   * The stored value of each invalid key: as parsed when it is a
+   * `GasConfigValue`, the stored text when it is not valid JSON, else `null`.
+   */
+  rejected: Record<string, GasConfigValue>;
 }
 
 /** One key changed by a save. Values are the effective ones, defaults included. */

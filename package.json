@@ -27,7 +27,8 @@
       "gas-config.errors.ts",
       "gas-config.storage.ts",
       "gas-config.access.ts",
-      "gas-config.class.ts"
+      "gas-config.class.ts",
+      "gas-config.ui.ts"
     ],
     "peers": {
       "gas-lock": "^1.2.0",

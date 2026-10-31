@@ -57,6 +57,7 @@ class _GasConfigStorage {
       values: { ...this._cache.values },
       version: this._cache.version,
       invalid: [...this._cache.invalid],
+      rejected: { ...this._cache.rejected },
     };
   }
 
@@ -227,6 +228,7 @@ class _GasConfigStorage {
   ): GasConfigSnapshot {
     const values: Record<string, GasConfigValue> = {};
     const invalid: string[] = [];
+    const rejected: Record<string, GasConfigValue> = {};
 
     for (const field of this._fields.values()) {
       values[field.key] = field.default;
@@ -239,12 +241,14 @@ class _GasConfigStorage {
         parsed = JSON.parse(raw);
       } catch {
         invalid.push(field.key);
+        rejected[field.key] = raw;
         continue;
       }
 
       if (parsed === null || parsed === '') continue;
       if (_GasConfigStorage.check(field, parsed) !== null) {
         invalid.push(field.key);
+        rejected[field.key] = _GasConfigStorage.isValue(parsed) ? parsed : null;
         continue;
       }
       values[field.key] = parsed as GasConfigValue;
@@ -254,6 +258,16 @@ class _GasConfigStorage {
       values,
       version: stored[_GAS_CONFIG_VERSION_PROPERTY] ?? '',
       invalid,
+      rejected,
     };
+  }
+
+  /** Whether a parsed JSON value is a `GasConfigValue`. */
+  private static isValue(value: unknown): value is GasConfigValue {
+    return (
+      typeof value === 'string' ||
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    );
   }
 }

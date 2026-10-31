@@ -33,7 +33,7 @@ var google = (function () {
         description: 'Shown in email subject lines and report headers.',
         group: 'general',
         required: true,
-        default: '',
+        default: null,
         rules: { maxLength: 60 },
       },
       {
@@ -60,7 +60,7 @@ var google = (function () {
         placeholder: 'https://docs.google.com/forms/d/…/edit',
         group: 'form',
         required: true,
-        default: '',
+        default: null,
         rules: {
           pattern: '^https://docs\\.google\\.com/forms/d/[\\w-]+/edit',
           patternMessage: "Paste the form's edit link. It ends in /edit.",
@@ -135,7 +135,7 @@ var google = (function () {
     values: {
       'org.name': 'Riverside Learning Trust',
       'system.locale': 'en-GB',
-      'form.url': '',
+      'form.url': null,
       'form.closesOn': null,
       'scoring.passMark': 65,
       'scoring.maxAttempts': 3,
@@ -258,7 +258,7 @@ var google = (function () {
    */
   function GasConfigRpc(method, payload) {
     if (!Object.prototype.hasOwnProperty.call(handlers, method)) {
-      throw envelopeError(404, 'NOT_FOUND', 'Unknown method: ' + method);
+      throw envelopeError(400, 'VALIDATION_ERROR', 'Unknown method: ' + method);
     }
     return handlers[method](payload);
   }

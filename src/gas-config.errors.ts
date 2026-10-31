@@ -1,5 +1,6 @@
 /** Codes of the expected failures gas-config throws. */
-type GasConfigErrorCode = 'VALIDATION_ERROR' | 'CONFLICT' | 'UNAUTHORIZED';
+type GasConfigErrorCode =
+  'VALIDATION_ERROR' | 'CONFLICT' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';
 
 /**
  * Expected failure thrown when gas-error is not loaded. Carries the same
@@ -55,5 +56,12 @@ const _GasConfigErrors = Object.freeze({
     return typeof GasUnauthorizedError === 'function'
       ? new GasUnauthorizedError(message)
       : new GasConfigError(message, 401, 'UNAUTHORIZED');
+  },
+
+  /** 500 `INTERNAL_ERROR`: a failure whose message is safe to show. */
+  internal(message: string): Error {
+    return typeof GasError === 'function'
+      ? new GasError(message, { statusCode: 500, code: 'INTERNAL_ERROR' })
+      : new GasConfigError(message, 500, 'INTERNAL_ERROR');
   },
 });
