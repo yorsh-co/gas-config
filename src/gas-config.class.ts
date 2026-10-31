@@ -17,6 +17,18 @@ const _GAS_CONFIG_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const _GAS_CONFIG_DEFAULT_TITLE = 'Settings';
 
+const _GAS_CONFIG_THEMES: readonly GasConfigTheme[] = Object.freeze([
+  'workspace',
+  'yorsh',
+]);
+
+/** `#rgb` or `#rrggbb`. */
+const _GAS_CONFIG_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+/** An `https:` URL without whitespace, or a `data:image/` URI. */
+const _GAS_CONFIG_LOGO_PATTERN =
+  /^(?:https:\/\/\S+|data:image\/[\w.+-]+[;,]\S*)$/i;
+
 const _GAS_CONFIG_DEFAULT_LOCK_TIMEOUT_MS = 30000;
 
 /**
@@ -31,8 +43,9 @@ const _GAS_CONFIG_DEFAULT_LOGGER: GasConfigLogger = (() => {
     msg: string,
     meta?: Record<string, unknown>,
   ): void => {
-    if (meta) log(`[GasConfig] ${msg}`, meta);
-    else log(`[GasConfig] ${msg}`);
+    const line = msg.startsWith('[GasConfig]') ? msg : `[GasConfig] ${msg}`;
+    if (meta) log(line, meta);
+    else log(line);
   };
 
   return Object.freeze({
@@ -120,6 +133,8 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   title: string;
   description?: string;
   groups: GasConfigGroup[];
+  theme: GasConfigTheme;
+  brand: GasConfigBrand;
   /** Normalised emails allowed to change the settings; empty means nobody. */
   editors: string[];
   logger: GasConfigLogger;
@@ -153,6 +168,8 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
       this.description = this._resolveText('description', options.description);
     }
     this.groups = this._resolveGroups(options.groups);
+    this.theme = this._resolveTheme(options.theme);
+    this.brand = this._resolveBrand(options.brand);
     this.editors = this._resolveEditors(options.editors);
 
     const validators = new Map<
@@ -179,6 +196,8 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
       this.lockService,
       this.lockTimeoutMs,
     );
+
+    _GasConfigUi.register(this);
   }
 
   /**
@@ -332,6 +351,52 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
       }
       return resolved;
     });
+  }
+
+  /** Validate a theme, falling back to `workspace` when omitted. */
+  private _resolveTheme(theme?: GasConfigTheme): GasConfigTheme {
+    if (theme === undefined) return 'workspace';
+    if (!_GAS_CONFIG_THEMES.includes(theme)) {
+      throw new Error(
+        `[GasConfig] Invalid "theme": expected one of ${_GAS_CONFIG_THEMES.join(', ')}.`,
+      );
+    }
+    return theme;
+  }
+
+  /** Validate the brand overrides, copying them. */
+  private _resolveBrand(brand?: GasConfigBrand): GasConfigBrand {
+    if (brand === undefined) return {};
+    if (!brand || typeof brand !== 'object' || Array.isArray(brand)) {
+      throw new Error(
+        '[GasConfig] Invalid "brand": expected an object of { primaryColor?, logoUrl? }.',
+      );
+    }
+
+    const resolved: GasConfigBrand = {};
+    if (brand.primaryColor !== undefined) {
+      if (
+        typeof brand.primaryColor !== 'string' ||
+        !_GAS_CONFIG_COLOR_PATTERN.test(brand.primaryColor)
+      ) {
+        throw new Error(
+          '[GasConfig] Invalid "brand.primaryColor": expected a hex colour such as #7a1f5c or #fff.',
+        );
+      }
+      resolved.primaryColor = brand.primaryColor;
+    }
+    if (brand.logoUrl !== undefined) {
+      if (
+        typeof brand.logoUrl !== 'string' ||
+        !_GAS_CONFIG_LOGO_PATTERN.test(brand.logoUrl)
+      ) {
+        throw new Error(
+          '[GasConfig] Invalid "brand.logoUrl": expected an https: URL or a data:image/ URI.',
+        );
+      }
+      resolved.logoUrl = brand.logoUrl;
+    }
+    return resolved;
   }
 
   /**

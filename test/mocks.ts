@@ -13,6 +13,25 @@ export interface MockLock {
   hasLock: Mock<() => boolean>;
 }
 
+/** Meta tag recorded by the `HtmlOutput` fake. */
+export interface MockMetaTag {
+  name: string;
+  content: string;
+}
+
+/** Chainable `HtmlOutput` fake that records what was set on it. */
+export interface MockHtmlOutput {
+  content: string;
+  title: string | null;
+  width: number | null;
+  height: number | null;
+  metaTags: MockMetaTag[];
+  setTitle(title: string): MockHtmlOutput;
+  setWidth(width: number): MockHtmlOutput;
+  setHeight(height: number): MockHtmlOutput;
+  addMetaTag(name: string, content: string): MockHtmlOutput;
+}
+
 /** Test switches for the Apps Script service fakes. */
 export interface MockOptions {
   /** Scopes for which `LockService` returns `null`, e.g. `['document']`. */
@@ -122,6 +141,26 @@ export function createMocks(options: MockOptions = {}) {
     }),
   };
 
+  const outputs: MockHtmlOutput[] = [];
+  const createHtmlOutput = vi.fn((content: string): MockHtmlOutput => {
+    const output: MockHtmlOutput = {
+      content,
+      title: null,
+      width: null,
+      height: null,
+      metaTags: [],
+      setTitle: (title) => ((output.title = title), output),
+      setWidth: (width) => ((output.width = width), output),
+      setHeight: (height) => ((output.height = height), output),
+      addMetaTag: (name, metaContent) => (
+        output.metaTags.push({ name, content: metaContent }),
+        output
+      ),
+    };
+    outputs.push(output);
+    return output;
+  });
+
   let uuidCounter = 0;
 
   return {
@@ -147,6 +186,9 @@ export function createMocks(options: MockOptions = {}) {
       getDocumentLock: factory('document'),
       getUserLock: factory('user'),
     },
+    HtmlService: { createHtmlOutput },
+    /** Every `HtmlOutput` created, in order. */
+    outputs,
     Utilities: {
       getUuid: vi.fn(
         (): string =>
@@ -163,3 +205,16 @@ export function createMocks(options: MockOptions = {}) {
 }
 
 export type Mocks = ReturnType<typeof createMocks>;
+
+/** `Ui` fake that records the dialogs and sidebars it is asked to show. */
+export function createUi() {
+  return {
+    showModalDialog: vi.fn((output: MockHtmlOutput, title: string): void => {
+      void output;
+      void title;
+    }),
+    showSidebar: vi.fn((output: MockHtmlOutput): void => {
+      void output;
+    }),
+  };
+}
