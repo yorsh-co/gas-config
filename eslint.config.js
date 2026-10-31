@@ -3,6 +3,7 @@ import globals from 'globals';
 
 export default gasEslint(
   {
+    ignores: ['.manual-config/**'],
     web: {
       files: ['src/web/**/*.ts'],
       tsconfig: './tsconfig.frontend.json',
@@ -38,6 +39,28 @@ export default gasEslint(
     languageOptions: {
       sourceType: 'module',
       globals: { ...globals.node, ...globals.browser },
+    },
+  },
+  // The manual fixture is a global-scope Apps Script file that uses the
+  // library's globals, like a consumer's code.
+  {
+    files: ['manual/**/*.js'],
+    languageOptions: {
+      sourceType: 'script',
+      globals: {
+        console: 'readonly',
+        PropertiesService: 'readonly',
+        SpreadsheetApp: 'readonly',
+        DocumentApp: 'readonly',
+        SlidesApp: 'readonly',
+        FormApp: 'readonly',
+        GasConfig: 'readonly',
+        GasLogger: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 );
