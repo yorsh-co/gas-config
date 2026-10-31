@@ -4,8 +4,28 @@
 
 ## [Unreleased]
 
+### Breaking
+
+- gas-config 2.0 replaces the sheet-backed 1.x API. Configuration is a typed schema over Script Properties, with no `.config` sheet, no presets and no migration path from 1.x
+- `GasConfig` takes `{ schema, groups?, editors?, title?, description?, logger?, lockService?, lockTimeoutMs? }`. The 1.x options (`gasSheetDbConfig`, `sheetName`) and `GasConfig.presets` are removed
+- `get(key)` is typed by the schema field: `string | null`, `number | null` or `boolean`, with booleans never null. An unknown key throws `[GasConfig] Unknown config key: <key>`
+- `load()`, `save()`, `syncSchema()` and `set()` are removed. Values are written by the settings UI, through an internal save that validates every change and detects conflicts
+- gas-sheetdb is no longer a dependency. The optional peers are `gas-lock` (`^1.2.0`), `gas-error` (`^1.2.0`) and `gas-logger` (`^1.3.0`)
+- Errors carry a `[GasConfig]` prefix and, for expected failures, `statusCode`, `code` and `details`: gas-error classes when it is loaded, otherwise a `GasConfigError`
+
 ### Added
 
+- Schema types `string`, `text`, `url`, `select`, `date`, `number` and `boolean`, discriminated on `type`, so `type` constrains `default` and unknown keys are type errors
+- Declarative rules `required`, `min`, `max`, `integer`, `maxLength`, `pattern` with `patternMessage` and `options`, plus a server-only `validate(value)` that returns an error message
+- Schema validation in the constructor, throwing `[GasConfig]` errors for malformed keys, types, labels, groups, options, rules and defaults. Nothing touches an Apps Script service until first use
+- `GasConfigValidation` (`src/shared/`), the pure rule set the settings UI and the server share, ported from the approved prototype with the same messages
+- Script Properties storage (`gasConfig:<key>`, JSON-encoded): one `getProperties()` per instance, saves under the script lock (GasLock when loaded, otherwise LockService) that re-read the properties, write only the changed keys and stamp a new version
+- Conflict detection through the stored version, and replay of a repeated `saveId` instead of a false conflict, for the `google.script.run` calls that are silently dropped
+- An invalid stored value reads as the field default and logs a warning that names the key and never the value; it never makes other keys unreadable
+- `GasConfigError` and `_GasConfigErrors`, with the codes `VALIDATION_ERROR`, `CONFLICT` and `UNAUTHORIZED`
+- Wire types for the settings UI contract (`GasConfigSettingsState`, `GasConfigClientField`, `GasConfigSaveRequest`, `GasConfigSaveResponse`, `GasConfigRpcRequest`) in `src/shared/gas-config.contract.types.ts`
+- Canonical peer declarations for gas-lock, gas-error and gas-logger under `src/internal/`
+- Vitest suites over fakes of `PropertiesService`, `LockService`, `Utilities` and `console`, covering every validation rule, the schema checks, reads, saves, locking and the 1.x defects the plan lists, and a compile-time check of the schema and `get()` types (`test/gas-config.types-check.ts`)
 - Settings UI prototype under `prototype/`: schema-driven sidebar, dialog and web page surfaces with Workspace and Yorsh themes, a mock server with failure scenarios and a development harness; not part of the release
 
 ### Changed
@@ -14,12 +34,13 @@
 - Releases are published with [`gas-dev-release`](https://github.com/yorsh-co/gas-dev-release) instead of `scripts/release.sh`
 - `npm run check` now also runs the tests and `gas-dev-config check`, and `typecheck` also checks `tsconfig.test.json`
 - Added `.github/dependabot.yml`: one weekly grouped pull request for development dependencies, against `develop`
-- Added `gasDevConfig.loadOrder` to `package.json` and a Vitest load test that evaluates the sources in that order
+- Added `gasDevConfig.loadOrder` to `package.json`, and Vitest suites that evaluate the sources in that order
 - `src/internal/gas-config.peer.types.ts` is renamed to `.d.ts` so the ambient declarations emit nothing into `dist/`
 - Updated transitive dev dependencies with `npm audit fix`, resolving the high-severity `brace-expansion` advisory
 
 ### Removed
 
+- The 1.x sources (`gas-config.presets.ts`, `gas-config.validator.ts`, the sheet-backed class, storage and types), the stale gas-sheetdb declarations and the 1.x load test
 - `scripts/release.sh` and `scripts/write-release-package-json.js`
 - The `@eslint/js`, `typescript-eslint` and `eslint-config-prettier` dev dependencies, now provided by `gas-dev-config`
 

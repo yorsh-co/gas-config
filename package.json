@@ -20,12 +20,18 @@
   "prettier": "gas-dev-config/prettier",
   "gasDevConfig": {
     "loadOrder": [
-      "gas-config.types.ts",
-      "gas-config.presets.ts",
-      "gas-config.validator.ts",
+      "types/gas-config.types.ts",
+      "shared/gas-config.contract.types.ts",
+      "shared/gas-config.validation.ts",
+      "gas-config.errors.ts",
       "gas-config.storage.ts",
       "gas-config.class.ts"
-    ]
+    ],
+    "peers": {
+      "gas-lock": "^1.2.0",
+      "gas-error": "^1.2.0",
+      "gas-logger": "^1.3.0"
+    }
   },
   "devDependencies": {
     "@types/google-apps-script": "^2.0.11",
