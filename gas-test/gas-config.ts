@@ -1,6 +1,7 @@
 /** Schema shared by the tests: a bit of each behaviour that matters. */
 const testSchema = {
   org: { type: 'string', label: 'Organisation', required: true },
+  note: { type: 'string', label: 'Note' },
   passMark: {
     type: 'number',
     label: 'Pass mark',
@@ -92,7 +93,10 @@ test('values round-trip through real Script Properties', () => {
   withCleanProperties(() => {
     const config = newConfig();
     assert(config.get('passMark') === 70, 'the default should be served');
-    assert(config.get('org') === null, 'an unset optional value is null');
+    assert(
+      config.get('org') === null,
+      'an unset value without a default is null',
+    );
 
     const saved = config._saveChanges(saveRequest({ org: 'Acme' }, ''));
     assert(saved.ok, 'the save should succeed');
@@ -111,19 +115,19 @@ test('values round-trip through real Script Properties', () => {
 test('a cleared value is stored as null and reads as unset', () => {
   withCleanProperties(() => {
     const config = newConfig();
-    const first = config._saveChanges(saveRequest({ org: 'Acme' }, ''));
+    const first = config._saveChanges(saveRequest({ note: 'Draft' }, ''));
     assert(first.ok, 'the first save should succeed');
 
     const cleared = config._saveChanges(
-      saveRequest({ org: null }, first.version),
+      saveRequest({ note: null }, first.version),
     );
     assert(cleared.ok, 'clearing should succeed');
     assert(
-      PropertiesService.getScriptProperties().getProperty('gasConfig:org') ===
+      PropertiesService.getScriptProperties().getProperty('gasConfig:note') ===
         'null',
       'a cleared value should be stored as JSON null',
     );
-    assert(newConfig().get('org') === null, 'it should read as unset');
+    assert(newConfig().get('note') === null, 'it should read as unset');
   });
 });
 
@@ -210,10 +214,15 @@ test('the editors check uses the running account', () => {
     const stranger = newConfig({ editors: ['nobody@example.invalid'] });
     assert(!stranger._canEdit(), 'a user who is not listed cannot edit');
 
-    const envelope = thrownEnvelope(() =>
-      stranger._saveChanges(saveRequest({ org: 'Acme' }, '')),
-    );
-    assert(envelope.status === 401, `expected 401, got ${envelope.status}`);
+    let thrown: unknown;
+    try {
+      stranger._saveChanges(saveRequest({ org: 'Acme' }, ''));
+    } catch (error) {
+      thrown = error;
+    }
+    const statusCode = (thrown as { statusCode?: unknown } | undefined)
+      ?.statusCode;
+    assert(statusCode === 401, `expected a 401 error, got ${String(thrown)}`);
     assert(
       PropertiesService.getScriptProperties().getProperty('gasConfig:org') ===
         null,
