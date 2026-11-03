@@ -25,7 +25,7 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 
 ## Phases
 
-### Phase 1: Peer ranges and declarations — [ ] todo
+### Phase 1: Peer ranges and declarations — [x] done
 
 - Files: `package.json`, `README.md`, `CHANGELOG.md`, `src/internal/gas-logger.peer.types.d.ts`, `src/internal/gas-error.peer.types.d.ts`
 - Steps:
@@ -77,6 +77,8 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 - Review: standard
 
 ## Log
+
+- Phase 1: gas-error declarations already matched v1.2.2; only gas-logger changed. Build log written to scratchpad (TMPDIR unset).
 
 ## Open questions
 
