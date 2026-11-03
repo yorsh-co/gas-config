@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { namedHostServices } from '../scripts/host-services.js';
 import { ROOT } from './harness';
 
 /**
@@ -48,5 +49,31 @@ describe('manual fixture scopes', () => {
     it('defines getUi_', () => {
       expect(source).toMatch(/function getUi_\(\)/);
     });
+  });
+});
+
+describe('namedHostServices', () => {
+  it('finds a service in code', () => {
+    expect(namedHostServices('SpreadsheetApp.openById(x)')).toEqual([
+      'SpreadsheetApp',
+    ]);
+  });
+
+  it('counts comments', () => {
+    expect(namedHostServices('// DocumentApp.getUi()')).toEqual([
+      'DocumentApp',
+    ]);
+  });
+
+  it('matches whole, case-sensitive words only', () => {
+    expect(
+      namedHostServices('const MySpreadsheetAppLike = 1; spreadsheetApp;'),
+    ).toEqual([]);
+  });
+
+  it('returns every service in HOST_SERVICES order', () => {
+    expect(
+      namedHostServices('FormApp SlidesApp DocumentApp SpreadsheetApp'),
+    ).toEqual(['SpreadsheetApp', 'DocumentApp', 'SlidesApp', 'FormApp']);
   });
 });

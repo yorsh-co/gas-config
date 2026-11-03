@@ -57,7 +57,7 @@ The fixture is the same for every container except one file. Create the document
 
 ## Checklist
 
-Run with a signed-in editor unless the row says otherwise. Add the container and the browser to the Results below.
+Run with a signed-in editor unless the row says otherwise.
 
 | #   | Check                                    | How                                                                                                                                                           | Expected                                                                                                                                                                                                                                                                                                                               |
 | --- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -80,45 +80,6 @@ Run with a signed-in editor unless the row says otherwise. Add the container and
 
 ## After the checks
 
-1. Record the results below, and copy anything that holds for every user into the README's [Platform limitations](../README.md#platform-limitations).
+1. Copy anything that holds for every user into the README's [Platform limitations](../README.md#platform-limitations), and anything observed on a deployed project into its [Platform notes](../README.md#platform-notes).
 2. Archive the deployment (Deploy, Manage deployments), or delete the project and container.
 3. `rm -rf .manual-config`, and unset `MANUAL_CONFIG_SCRIPT_ID` and `MANUAL_CONFIG_HOST`.
-
-## Results
-
-Copy this section, fill it in and keep it with the release notes.
-
-- Date:
-- Version or commit:
-- Tester account(s) and account types (consumer, Workspace):
-- Containers tried (Sheets, Docs, Slides, Forms, web app):
-- Browsers and devices:
-
-| #   | Container or browser | Result (pass, fail, n/a) | Notes |
-| --- | -------------------- | ------------------------ | ----- |
-| 1   |                      |                          |       |
-| 2   |                      |                          |       |
-| 3   |                      |                          |       |
-| 4   |                      |                          |       |
-| 5   |                      |                          |       |
-| 6   |                      |                          |       |
-| 7   |                      |                          |       |
-| 8   |                      |                          |       |
-| 9   |                      |                          |       |
-| 10  |                      |                          |       |
-| 11  |                      |                          |       |
-| 12  |                      |                          |       |
-| 13  |                      |                          |       |
-| 14  |                      |                          |       |
-| 15  |                      |                          |       |
-| 16  |                      |                          |       |
-
-Observations to record for the README's Platform limitations:
-
-| Observation                                                       | Value |
-| ----------------------------------------------------------------- | ----- |
-| Scopes on the consent screen, exactly as listed                   |       |
-| Dialog size as rendered, and whether the title is the instance's  |       |
-| `Session` email under Execute as: User accessing                  |       |
-| `Session` email under Execute as: Me, consumer account            |       |
-| Size of the embedded page in characters (`npm run test:gas` INFO) |       |

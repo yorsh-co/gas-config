@@ -12,7 +12,7 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - `GasConfig` takes `{ schema, groups?, editors?, title?, appName?, description?, theme?, brand?, logger?, lockService?, lockTimeoutMs? }`. The `gasSheetDbConfig` and `sheetName` options and `GasConfig.presets` are removed
 - `get(key)` is typed by the schema field: `string | null`, `number | null` or `boolean`, with booleans never null. An unknown key throws `[GasConfig] Unknown config key: <key>`
 - `load()`, `save()`, `syncSchema()` and `set()` are removed. The settings UI writes values through a save that validates every change and detects conflicts
-- gas-sheetdb is no longer a dependency. The optional peers are `gas-lock` (`^1.2.0`), `gas-error` (`^1.2.0`) and `gas-logger` (`^1.3.0`)
+- gas-sheetdb is no longer a dependency. The optional peers are `gas-lock` (`^1.2.0`), `gas-error` (`^1.2.2`) and `gas-logger` (`^2.0.1`)
 - Errors carry a `[GasConfig]` prefix. Expected failures carry `statusCode`, `code` and `details`, as gas-error classes when it is loaded and otherwise as a `GasConfigError`
 - The consumer needs the `https://www.googleapis.com/auth/userinfo.email` scope to identify the signed-in user, and `https://www.googleapis.com/auth/script.container.ui` for the dialog and sidebar. Apps Script detects both from the code
 
@@ -45,6 +45,7 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - `build` runs `build:frontend` (`gas-dev-config html`) then `build:backend`. `typecheck` also checks the tests, the browser sources, the peer declarations and the end-to-end tests, and `check` also runs the tests and `gas-dev-config check`
 - The default logger no longer repeats the `[GasConfig]` prefix of a message that already starts with it
 - Updated transitive dev dependencies with `npm audit fix`, resolving the high-severity `brace-expansion` advisory
+- The peers are gas-logger `^2.0.1` and gas-error `^1.2.2`. The sheet sink of gas-logger 2.x takes the spreadsheet from the caller, so bundling it no longer adds the Sheets scope to Docs, Slides and Forms projects, and gas-error 1.2.2 accepts gas-logger 2.x without a peer warning
 
 ### Removed
 
@@ -60,6 +61,11 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - Inline padding on the page footer on narrow screens
 - No pointer cursor on a disabled switch label
 - The manual fixture now targets one host with `@OnlyCurrentDoc`, which narrows its consent scopes
+- `npm run manual:build` fails if the bundled peers name a host service (`SpreadsheetApp`, `DocumentApp`, `SlidesApp`, `FormApp`), since Apps Script would add that service's scope to every fixture
+
+### Docs
+
+- The README gains a Platform notes section with what was observed on deployed projects, and the empty Results template is removed from `manual/README.md`
 
 ---
 

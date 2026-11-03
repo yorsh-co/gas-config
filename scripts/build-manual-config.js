@@ -5,7 +5,8 @@
  * Run through `npm run manual:build`, which compiles the library first. The
  * target project is read from MANUAL_CONFIG_SCRIPT_ID, so no ID is stored in
  * the repository. MANUAL_CONFIG_HOST (sheets, docs, slides or forms) picks the
- * host file, so the project asks for that host's scope only. See manual/README.md.
+ * host file, so the project asks for that host's scope only. The build fails if
+ * the bundled peers name a host service, which would add its scope. See manual/README.md.
  */
 import { execFileSync } from 'node:child_process';
 import {
@@ -18,6 +19,7 @@ import {
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from 'gas-dev-bundle';
+import { namedHostServices } from './host-services.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = join(ROOT, '.manual-config');
@@ -64,10 +66,15 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
 // Peers, bundled from their release tags as a consumer would.
-emit(
-  'lib/gas-libraries.js',
-  bundle({ libraries: gasDevConfig.peers, cwd: ROOT }).code,
-);
+const peerCode = bundle({ libraries: gasDevConfig.peers, cwd: ROOT }).code;
+const named = namedHostServices(peerCode);
+if (named.length > 0) {
+  console.error(
+    `Bundled peers name ${named.join(', ')}, which adds those services' scopes to every fixture. See manual/README.md check 1.`,
+  );
+  process.exit(1);
+}
+emit('lib/gas-libraries.js', peerCode);
 
 // The compiled library, one file each, in load order. Type-only files compile
 // to nothing and are left out.
