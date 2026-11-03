@@ -56,7 +56,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Done when: `npm run test:e2e -- e2e/render.spec.ts` passes
 - Review: standard
 
-### Phase 3: No pointer on a disabled switch label — [ ] todo
+### Phase 3: No pointer on a disabled switch label — [x] done
 
 - Files: `src/web/gas-config.ui.css`, `e2e/render.spec.ts`
 - Root cause: `.switch-row .label { cursor: pointer; }` (around `gas-config.ui.css:432`) has no disabled override. `.switch:disabled` resets only the switch itself.
@@ -120,6 +120,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Phase 1: added a `manual/app.js` eslint global override for `getUi_` (outside the listed files). `@OnlyCurrentDoc` is a standalone comment, which the test enforces. The `MANUAL_CONFIG_HOST` check has no test, and `manual:build` was not run end to end.
 
 - Phase 2: no deviations.
+
+- Phase 3: no deviations.
 
 ## Open questions
 

@@ -53,3 +53,15 @@ test('keeps the page footer content off the screen edges on a phone', async ({
   expect(status!.x).toBeGreaterThanOrEqual(16);
   expect(375 - (save!.x + save!.width)).toBeGreaterThanOrEqual(16);
 });
+
+test('shows no pointer cursor on the label of a disabled switch', async ({
+  page,
+}) => {
+  await openReady(page, { scenario: 'readonly' });
+
+  const label = page
+    .locator('.switch-row')
+    .filter({ hasText: 'Email results to respondents' })
+    .locator('.label');
+  await expect(label).toHaveCSS('cursor', 'default');
+});
