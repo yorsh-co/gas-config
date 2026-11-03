@@ -84,6 +84,10 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 
 ## Open questions
 
+- Deferred: the build's exit-1 path has no test. It is a three-line guard around the tested `namedHostServices`.
+- Deferred: `scripts/host-services.d.ts` is hand-written and could drift. It is two lines, and adding `allowJs` would widen a config.
+- Deferred: the scan covers only the four host services (not `DriveApp`, `UrlFetchApp`, …), which is the plan's scope. Possible later extension.
+
 ## Report extras (for the owner, after /phased)
 
 1. Finish in order: `git flow feature finish manual-check-fixes`, `git flow bugfix finish yorsh-fixture-logo`, `git flow bugfix finish gas-logger-2`. Then run `npm run check && npm run test:e2e` on `develop`.
