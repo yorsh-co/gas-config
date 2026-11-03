@@ -43,6 +43,23 @@ HANDOFF.md §1: `scripts/build-manual-config.js:69-77` refuses bundled peers tha
 - Done when: `npx vitest run test/manual-fixture.test.ts && npm run lint && npm run typecheck` passes; `MANUAL_CONFIG_SCRIPT_ID=dummy MANUAL_CONFIG_HOST=docs npm run manual:build` still builds (needs network access to the peer tags), then `rm -rf .manual-config`.
 - Review: standard
 
+## Handoff: next plan
+
+Not part of this plan. Once it is finished (`git flow bugfix finish manual-peer-guard`), start this as its own `/phased` plan on `bugfix/host-services-types`. It is a separate item, and it needs this plan's `assertNoHostServices` to be in place. The final report must relay this section, because `PLAN.md` is removed at the end.
+
+- Goal: remove the drift risk recorded in HANDOFF.md "Deferred". `scripts/host-services.d.ts` is hand-written and nothing checks it against `scripts/host-services.js`, so make the JSDoc the only source of types.
+- Files: `tsconfig.test.json`, `scripts/host-services.js`, `scripts/host-services.d.ts` (removed)
+- Root cause: no typecheck config includes `scripts/`, so the `.d.ts` stands in for the `.js` file and is never checked against it.
+- Steps:
+  1. Failing check first: in `tsconfig.test.json`, add `"allowJs": true` and `"checkJs": true` to `compilerOptions`, and add `"scripts/host-services.js"` to `include`. Temporarily change a JSDoc `@returns` in `scripts/host-services.js` to a wrong type, and confirm that `npm run typecheck:test` fails. Then revert that change.
+  2. `git rm scripts/host-services.d.ts`.
+  3. Make sure the JSDoc fully types both functions and `HOST_SERVICES`. Add `/** @type {readonly string[]} */` if the inferred type is wider than the old `.d.ts`.
+  4. Confirm that `gas-dev-config/tsconfig/test.json` sets nothing that conflicts with `checkJs`, and that `npm run lint` doesn't then expect type info for other files in `scripts/`.
+- Done when: `npx vitest run test/manual-fixture.test.ts && npm run lint && npm run typecheck` passes, and no other `scripts/*.js` file is pulled into the typecheck. Check with `npx tsc -p tsconfig.test.json --listFilesOnly | grep scripts/`, which should list only `host-services.js`.
+- Commit: `refactor(scripts): type host-services from its JSDoc`. No CHANGELOG entry, because nothing ships.
+- Review: standard
+- Rejected: generating the `.d.ts` with a drift check (more machinery for two functions), and converting the file to `.ts` (`engines` allows Node `>=20`, which has no default type stripping).
+
 ## Log
 
 ## Open questions
