@@ -135,7 +135,7 @@ List the libraries in your `package.json`:
       "gas-config": "^2.0.0",
       "gas-lock": "^1.2.0",
       "gas-error": "^1.2.0",
-      "gas-logger": "^1.3.0"
+      "gas-logger": "^2.0.0"
     }
   }
 }

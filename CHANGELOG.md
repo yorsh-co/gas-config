@@ -45,6 +45,7 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - `build` runs `build:frontend` (`gas-dev-config html`) then `build:backend`. `typecheck` also checks the tests, the browser sources, the peer declarations and the end-to-end tests, and `check` also runs the tests and `gas-dev-config check`
 - The default logger no longer repeats the `[GasConfig]` prefix of a message that already starts with it
 - Updated transitive dev dependencies with `npm audit fix`, resolving the high-severity `brace-expansion` advisory
+- The `gas-logger` peer is `^2.0.0`, whose sheet sink no longer adds the Sheets scope to Docs, Slides and Forms projects
 
 ### Removed
 
