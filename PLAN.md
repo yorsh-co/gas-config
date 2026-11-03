@@ -18,7 +18,7 @@ HANDOFF.md §1: `scripts/build-manual-config.js:69-77` refuses bundled peers tha
 
 ## Phases
 
-### Phase 1: Extract and test `assertNoHostServices` — [ ] todo
+### Phase 1: Extract and test `assertNoHostServices` — [x] done
 
 - Files: `test/manual-fixture.test.ts`, `scripts/host-services.js`, `scripts/host-services.d.ts`, `scripts/build-manual-config.js`
 - Root cause: the refusal is written inline in a script that has network side effects at module level (`scripts/build-manual-config.js:69-77`), so no test can reach it.
@@ -61,6 +61,8 @@ Not part of this plan. Once it is finished (`git flow bugfix finish manual-peer-
 - Rejected: generating the `.d.ts` with a drift check (more machinery for two functions), and converting the file to `.ts` (`engines` allows Node `>=20`, which has no default type stripping).
 
 ## Log
+
+- Phase 1: done as specified; no deviations. Tests 27/27, lint, typecheck and manual:build pass.
 
 ## Open questions
 

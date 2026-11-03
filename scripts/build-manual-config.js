@@ -19,7 +19,7 @@ import {
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from 'gas-dev-bundle';
-import { namedHostServices } from './host-services.js';
+import { assertNoHostServices } from './host-services.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = join(ROOT, '.manual-config');
@@ -67,11 +67,10 @@ mkdirSync(OUT, { recursive: true });
 
 // Peers, bundled from their release tags as a consumer would.
 const peerCode = bundle({ libraries: gasDevConfig.peers, cwd: ROOT }).code;
-const named = namedHostServices(peerCode);
-if (named.length > 0) {
-  console.error(
-    `Bundled peers name ${named.join(', ')}, which adds those services' scopes to every fixture. See manual/README.md check 1.`,
-  );
+try {
+  assertNoHostServices(peerCode);
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
 }
 emit('lib/gas-libraries.js', peerCode);
