@@ -58,7 +58,7 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 - Done when: `npx vitest run test/manual-fixture.test.ts && npm run lint && MANUAL_CONFIG_SCRIPT_ID=dummy MANUAL_CONFIG_HOST=docs npm run manual:build 2>&1 | tail -3`. The build must exit 0, which shows that the bundled gas-logger 2.0.1, gas-error 1.2.2 and gas-lock 1.2.x name no host service. Then `rm -rf .manual-config`.
 - Review: deep. It gates which OAuth scopes the shipped peers may bring in.
 
-### Phase 3: Manual-check outcome in the docs — [ ] todo
+### Phase 3: Manual-check outcome in the docs — [x] done
 
 - Files: `manual/README.md`, `README.md`
 - Steps:
@@ -80,6 +80,7 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 
 - Phase 1: gas-error declarations already matched v1.2.2; only gas-logger changed. Build log written to scratchpad (TMPDIR unset).
 - Phase 2: added `scripts/host-services.d.ts` (hand-written; test tsconfig has no `allowJs`). The build's exit-1 path is not unit-tested; only `namedHostServices` is.
+- Phase 3: no deviations.
 
 ## Open questions
 

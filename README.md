@@ -627,6 +627,15 @@ These are Apps Script constraints. They are documented, not fixed.
 | P9  | The page loads Roboto from Google Fonts. Where that is blocked, it falls back to the system font.                                                                                                                                                       |
 | P10 | `Session.getActiveUser().getEmail()` is blank for consumer accounts and callers outside your domain when a web app executes as you, so those users cannot be identified and are read-only.                                                              |
 
+### Platform notes
+
+Observed on deployed projects (`manual/` fixture):
+
+- **Consent wording.** The consent screen describes `script.container.ui` as "display and run third-party web content in prompts and sidebars".
+- **Peers add scopes.** Apps Script scans every file pushed, peers included. With gas-logger 1.x bundled, a Docs, Slides or Forms project was also asked for `spreadsheets.currentonly`, because its sheet sink names `SpreadsheetApp`. gas-logger 2.x takes the spreadsheet from the caller, and the project asks for its own host's scope only.
+- **No active container in a web app.** In `doGet`, the active-container getters (`SpreadsheetApp.getActive()` and the others) return `null`, even in a container-bound project. A name read from the container is therefore unavailable on the page surface, so pass `appName` explicitly.
+- **Same behaviour on every host.** Checks 1 to 8 behaved identically in Sheets, Docs, Slides and Forms, each with its own `…currentonly` scope.
+
 ## Development
 
 The source is TypeScript, compiled to ES2020 because Apps Script's push-time parser rejects newer syntax.
