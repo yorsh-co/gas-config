@@ -539,7 +539,7 @@ Values live in Script Properties.
 const config = new GasConfig({
   theme: 'yorsh',
   brand: {
-    primaryColor: '#7a1f5c',
+    primaryColor: '#276182',
     logoUrl: 'https://example.org/logo.svg',
   },
   schema: {/* ... */},

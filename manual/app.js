@@ -15,7 +15,7 @@
  *   FALLBACK_EDITORS below.
  * - MANUAL_THEME: `workspace` or `yorsh` (default `yorsh`).
  * - MANUAL_LOGO: `true` to show a `data:` image logo (the yorsh theme only).
- * - MANUAL_BRAND_COLOR: a hex colour such as `#7a1f5c`, overriding the
+ * - MANUAL_BRAND_COLOR: a hex colour such as `#276182`, overriding the
  *   primary colour.
  * - MANUAL_APP_NAME: the app name shown above the page title. Falls back to
  *   the container's name from `getContainerName_()` in the host file, only where a container is active (not in the web app).
