@@ -9,7 +9,7 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 ### Breaking
 
 - Configuration is a typed schema stored in Script Properties. There is no `.config` sheet, no presets and no migration from 1.x
-- `GasConfig` takes `{ schema, groups?, editors?, title?, description?, theme?, brand?, logger?, lockService?, lockTimeoutMs? }`. The `gasSheetDbConfig` and `sheetName` options and `GasConfig.presets` are removed
+- `GasConfig` takes `{ schema, groups?, editors?, title?, appName?, description?, theme?, brand?, logger?, lockService?, lockTimeoutMs? }`. The `gasSheetDbConfig` and `sheetName` options and `GasConfig.presets` are removed
 - `get(key)` is typed by the schema field: `string | null`, `number | null` or `boolean`, with booleans never null. An unknown key throws `[GasConfig] Unknown config key: <key>`
 - `load()`, `save()`, `syncSchema()` and `set()` are removed. The settings UI writes values through a save that validates every change and detects conflicts
 - gas-sheetdb is no longer a dependency. The optional peers are `gas-lock` (`^1.2.0`), `gas-error` (`^1.2.0`) and `gas-logger` (`^1.3.0`)
@@ -35,6 +35,7 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - **Build.** The UI is written as `.html`, `.css` and TypeScript in `src/web/` and built by `gas-dev-config html` into the committed `src/generated/gas-config.ui.html.ts` (`_GAS_CONFIG_UI_HTML`), which is listed in `gasDevConfig.loadOrder` and checked by `gas-dev-config check`
 - **Tests.** Vitest suites over fakes of `PropertiesService`, `LockService`, `Utilities` and `console`, covering every validation rule, the schema checks, reads, saves, locking, the RPC client and the generated page, plus a compile-time check of the schema and `get()` types. Playwright end-to-end tests (`npm run test:e2e`, not part of `npm run check`) over the development harness. Apps Script tests (`npm run test:gas`, `npm run test:gas:build`) against a dedicated project: a real Script Properties round trip, the script lock, the `editors` check against the running account, the rendered page and its bootstrap, `GasConfigRpc` envelopes, an invalid stored value, and the real `GasError.handle` and `GasLogger` peers
 - **Development tools.** `dev/`, a harness that hosts the real UI in an imitation of each Workspace surface with a mock server and failure scenarios (`npm run dev`), and `manual/`, a consumer fixture and checklist for container-bound Sheets, Docs, Slides and Forms scripts and a web app deployment (`npm run manual:build`). Neither is part of the release
+- **App name and logo.** The `appName` option, shown above the page title and in the tab, and the yorsh logo in the dialog and sidebar
 - A README written for 2.0, with a Platform limitations table, and `.github/dependabot.yml`: one weekly grouped pull request for development dependencies, against `develop`
 
 ### Changed
@@ -56,6 +57,9 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - A required field may have an empty default: it is invalid until filled, not a schema error
 - A save writes only the changed keys and never overwrites another key with a stale cached value
 - `NaN` and `Infinity` are not numbers, and one invalid stored value no longer makes the other keys unreadable
+- Inline padding on the page footer on narrow screens
+- No pointer cursor on a disabled switch label
+- The manual fixture now targets one host with `@OnlyCurrentDoc`, which narrows its consent scopes
 
 ---
 
