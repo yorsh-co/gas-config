@@ -40,7 +40,7 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 - Done when: `npm run typecheck && npx vitest run && MANUAL_CONFIG_SCRIPT_ID=dummy MANUAL_CONFIG_HOST=docs npm run manual:build 2>&1 | tee "$TMPDIR/manual-build.log" | tail -5 && ! grep -q 'gas-dev-bundle: warning' "$TMPDIR/manual-build.log"`. Afterwards, `rm -rf .manual-config`.
 - Review: standard
 
-### Phase 2: Manual build refuses peers that name a host service — [ ] todo
+### Phase 2: Manual build refuses peers that name a host service — [x] done
 
 - Files: `scripts/host-services.js` (new), `scripts/build-manual-config.js`, `test/manual-fixture.test.ts`
 - Steps:
@@ -79,6 +79,7 @@ Close release PLAN.md step 3 and HANDOFF.md so gas-config 2.0.0 can be released.
 ## Log
 
 - Phase 1: gas-error declarations already matched v1.2.2; only gas-logger changed. Build log written to scratchpad (TMPDIR unset).
+- Phase 2: added `scripts/host-services.d.ts` (hand-written; test tsconfig has no `allowJs`). The build's exit-1 path is not unit-tested; only `namedHostServices` is.
 
 ## Open questions
 
