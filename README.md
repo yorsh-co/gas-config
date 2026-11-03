@@ -533,7 +533,7 @@ Values live in Script Properties.
 | `theme: 'workspace'` | The default. Material 3 as used in Google Workspace, so the UI feels native to the host      |
 | `theme: 'yorsh'`     | The Yorsh brand look                                                                         |
 | `brand.primaryColor` | `#rgb` or `#rrggbb`. Replaces the theme's primary colour on buttons, focus rings and accents |
-| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on the page surface in the `yorsh` theme only  |
+| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on every surface in the `yorsh` theme only     |
 
 ```js
 const config = new GasConfig({

@@ -32,14 +32,16 @@ for (const surface of SURFACES) {
   }
 }
 
-test('shows the owner logo on the page surface in the yorsh theme only', async ({
+test('shows the owner logo on every surface in the yorsh theme only', async ({
   page,
 }) => {
-  await openReady(page, { surface: 'page', theme: 'yorsh' });
-  await expect(page.locator('img.logo')).toHaveCount(1);
+  for (const surface of SURFACES) {
+    await openReady(page, { surface, theme: 'yorsh' });
+    await expect(page.locator('img.logo')).toHaveCount(1);
 
-  await openReady(page, { surface: 'page', theme: 'workspace' });
-  await expect(page.locator('img.logo')).toHaveCount(0);
+    await openReady(page, { surface, theme: 'workspace' });
+    await expect(page.locator('img.logo')).toHaveCount(0);
+  }
 });
 
 test('keeps the page footer content off the screen edges on a phone', async ({

@@ -34,7 +34,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
   1. Write `test/manual-fixture.test.ts`, reusing the compiled-output scan idea and the `FORBIDDEN` list from `test/scopes.test.ts` (copy the list; do not export it from a test file). Assert two things:
      - `manual/app.js` names none of the four services.
      - `manual/hosts/<host>.js` exists for each of `sheets`, `docs`, `slides` and `forms`, names exactly its own service, and contains `@OnlyCurrentDoc`.
-     The test fails now.
+       The test fails now.
   2. Create the four host files. Each is a global-scope file with a header comment, `/** @OnlyCurrentDoc */`, and `function getUi_() { return <Service>.getUi(); }` with JSDoc. Match `app.js` style.
   3. Remove `getUi_()` and its comment from `app.js`. Update the header comment to say the host file supplies it.
   4. In `scripts/build-manual-config.js`, read `MANUAL_CONFIG_HOST` (one of the four; anything else exits with a message, like the existing `MANUAL_CONFIG_SCRIPT_ID` check). Copy `manual/hosts/<host>.js` to `.manual-config/host.js`, and add `host.js` to the push order before `app.js`.
@@ -102,7 +102,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Done when: `npm run test:e2e -- e2e/render.spec.ts` passes; `npx vitest run` passes
 - Review: standard
 
-### Phase 6: Logo on every surface (yorsh) — [ ] todo
+### Phase 6: Logo on every surface (yorsh) — [x] done
 
 - Files: `src/web/gas-config.ui.ts`, `src/web/gas-config.ui.css`, `e2e/render.spec.ts`, `README.md`, `manual/README.md`
 - Steps:
@@ -126,6 +126,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Phase 4: only the sidebar title has a test that it is unchanged. There is no dialog-title test (follow-up).
 
 - Phase 5: also touched files outside the list. Added `appName` to `peer/gas-config.peer.types.d.ts`, which Phase 4 missed. Synced `test/rpc-server.test.ts` with the mock. Added `getContainerName_` to the `manual/app.js` eslint globals.
+
+- Phase 6: no deviations. Confirmed the new test fails on the old code. `src/generated/gas-config.ui.html.ts` was stale after the UI changes in Phases 2, 3, 5 and 6, so it was regenerated in its own commit. PLAN.md was reformatted by Prettier.
 
 ## Open questions
 
