@@ -17,6 +17,8 @@
  * - MANUAL_LOGO: `true` to show a `data:` image logo (the yorsh theme only).
  * - MANUAL_BRAND_COLOR: a hex colour such as `#7a1f5c`, overriding the
  *   primary colour.
+ * - MANUAL_APP_NAME: the app name shown above the page title. Falls back to
+ *   the container's name from `getContainerName_()` in the host file.
  * - MANUAL_LARGE_SCHEMA: `true` to add 150 extra fields in 5 groups.
  */
 
@@ -32,6 +34,17 @@ const LOGO_SVG =
 /** Reads a fixture switch from Script Properties. */
 function setting_(name) {
   return PropertiesService.getScriptProperties().getProperty(name);
+}
+
+/** The app name: the switch, else the container's name, else none. */
+function appName_() {
+  const named = setting_('MANUAL_APP_NAME');
+  if (named) return named;
+  try {
+    return getContainerName_() || undefined;
+  } catch (error) {
+    return undefined;
+  }
 }
 
 function editors_() {
@@ -180,6 +193,7 @@ function logger_() {
 // Declared once, at global scope, so it exists in every execution.
 const config = new GasConfig({
   title: 'Fixture settings',
+  appName: appName_(),
   description:
     'These settings control how this project runs. Changes apply the next time it runs.',
   theme: setting_('MANUAL_THEME') === 'workspace' ? 'workspace' : 'yorsh',

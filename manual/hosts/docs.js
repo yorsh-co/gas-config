@@ -15,3 +15,11 @@
 function getUi_() {
   return DocumentApp.getUi();
 }
+
+/**
+ * The name of the container this script is bound to.
+ * @return {string} The container's name.
+ */
+function getContainerName_() {
+  return DocumentApp.getActiveDocument().getName();
+}

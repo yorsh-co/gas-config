@@ -223,6 +223,14 @@ body {
   font-weight: var(--title-weight);
 }
 
+.app-name {
+  margin: 0 0 2px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
 .page-heading .intro {
   margin: 4px 0 0;
 }

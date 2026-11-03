@@ -65,3 +65,22 @@ test('shows no pointer cursor on the label of a disabled switch', async ({
     .locator('.label');
   await expect(label).toHaveCSS('cursor', 'default');
 });
+
+test('shows the app name before the title on the page surface only', async ({
+  page,
+}) => {
+  await openReady(page, { surface: 'page', theme: 'workspace' });
+  const appName = page.locator('.page-heading > p.app-name');
+  await expect(appName).toHaveText('Quiz marker');
+  const order = await page
+    .locator('.page-heading')
+    .evaluate((heading) =>
+      Array.from(heading.children).map((child) => child.tagName),
+    );
+  expect(order.slice(0, 2)).toEqual(['P', 'H1']);
+
+  for (const surface of ['dialog', 'sidebar'] as const) {
+    await openReady(page, { surface, theme: 'workspace' });
+    await expect(page.locator('.app-name')).toHaveCount(0);
+  }
+});

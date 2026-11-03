@@ -41,6 +41,10 @@ describe('manual fixture scopes', () => {
       expect(source).toMatch(/^\/\*\* @OnlyCurrentDoc \*\/$/m);
     });
 
+    it('defines getContainerName_', () => {
+      expect(source).toMatch(/function getContainerName_\(\)/);
+    });
+
     it('defines getUi_', () => {
       expect(source).toMatch(/function getUi_\(\)/);
     });

@@ -340,6 +340,7 @@ The instance must live at global scope because the settings UI calls back into y
 | `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted or empty means nobody. See [Access](#access)          |
 | `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`            |
 | `description`   | `string`                      | Text under the heading                                                                               |
+| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`      |
 | `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                       |
 | `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                             |
 | `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                |

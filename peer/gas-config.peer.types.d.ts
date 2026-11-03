@@ -67,6 +67,7 @@ interface GasConfigGroup {
 /** Everything the UI needs to render the settings and edit them. */
 interface GasConfigSettingsState {
   title: string;
+  appName?: string;
   description?: string;
   canEdit: boolean;
   /** Opaque stamp of the stored values, sent back with each save. */
@@ -325,6 +326,8 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   editors?: string[];
   /** @default 'Settings' */
   title?: string;
+  /** Names the project above the page title and in the tab. Shown on the page surface only. */
+  appName?: string;
   description?: string;
   /** Visual theme of the settings UI. @default 'workspace' */
   theme?: GasConfigTheme;
@@ -367,6 +370,7 @@ declare class GasConfigError extends Error {
  */
 declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   title: string;
+  appName?: string;
   description?: string;
   groups: GasConfigGroup[];
   theme: GasConfigTheme;

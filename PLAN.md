@@ -82,7 +82,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Done when: `npx vitest run test/ui-host.test.ts` passes; `npm run typecheck` passes
 - Review: standard
 
-### Phase 5: `appName` on the page, fixture and docs — [ ] todo
+### Phase 5: `appName` on the page, fixture and docs — [x] done
 
 - Files: `src/web/gas-config.ui.ts`, `src/web/gas-config.ui.css`, `dev/mock-server.js`, `e2e/render.spec.ts`, `manual/app.js`, `manual/hosts/*.js`, `manual/README.md`, `README.md`
 - Steps:
@@ -124,6 +124,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Phase 3: no deviations.
 
 - Phase 4: only the sidebar title has a test that it is unchanged. There is no dialog-title test (follow-up).
+
+- Phase 5: also touched files outside the list. Added `appName` to `peer/gas-config.peer.types.d.ts`, which Phase 4 missed. Synced `test/rpc-server.test.ts` with the mock. Added `getContainerName_` to the `manual/app.js` eslint globals.
 
 ## Open questions
 

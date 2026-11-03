@@ -16,6 +16,7 @@ var google = (function () {
   var emailPattern = '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$';
   var schema = {
     title: 'Settings',
+    appName: 'Quiz marker',
     description:
       'These settings control how this project runs. Changes apply the next time it runs.',
     brand: { logoUrl: '/dev/assets/yorsh-mark.svg' },

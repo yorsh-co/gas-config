@@ -378,6 +378,9 @@
           el(
             'div',
             { class: 'page-heading' },
+            settings.appName
+              ? el('p', { class: 'app-name', text: settings.appName })
+              : null,
             el('h1', { class: 'page-title', text: settings.title }),
             settings.description
               ? el('p', { class: 'intro', text: settings.description })
