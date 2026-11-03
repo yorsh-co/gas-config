@@ -61,6 +61,11 @@ gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Sc
 - Inline padding on the page footer on narrow screens
 - No pointer cursor on a disabled switch label
 - The manual fixture now targets one host with `@OnlyCurrentDoc`, which narrows its consent scopes
+- `npm run manual:build` fails if the bundled peers name a host service (`SpreadsheetApp`, `DocumentApp`, `SlidesApp`, `FormApp`), since Apps Script would add that service's scope to every fixture
+
+### Docs
+
+- The README gains a Platform notes section with what was observed on deployed projects, and the empty Results template is removed from `manual/README.md`
 
 ---
 
