@@ -149,6 +149,8 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   editors?: string[];
   /** @default 'Settings' */
   title?: string;
+  /** Names the project above the page title and in the tab. Shown on the page surface only. */
+  appName?: string;
   description?: string;
   /** Visual theme of the settings UI. @default 'workspace' */
   theme?: GasConfigTheme;

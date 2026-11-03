@@ -66,7 +66,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Done when: `npm run test:e2e -- e2e/render.spec.ts` passes
 - Review: standard
 
-### Phase 4: `appName` option, server side — [ ] todo
+### Phase 4: `appName` option, server side — [x] done
 
 - Files: `src/types/gas-config.types.ts`, `src/gas-config.class.ts`, `src/shared/gas-config.contract.types.ts`, `src/gas-config.ui.ts`, `test/ui-host.test.ts`, `test/gas-config.types-check.ts`
 - Steps:
@@ -122,6 +122,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Phase 2: no deviations.
 
 - Phase 3: no deviations.
+
+- Phase 4: only the sidebar title has a test that it is unchanged. There is no dialog-title test (follow-up).
 
 ## Open questions
 
