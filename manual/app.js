@@ -15,7 +15,7 @@
  *   FALLBACK_EDITORS below.
  * - MANUAL_THEME: `workspace` or `yorsh` (default `yorsh`).
  * - MANUAL_LOGO: `true` to show a `data:` image logo (the yorsh theme only).
- * - MANUAL_BRAND_COLOR: a hex colour such as `#7a1f5c`, overriding the
+ * - MANUAL_BRAND_COLOR: a hex colour such as `#276182`, overriding the
  *   primary colour.
  * - MANUAL_APP_NAME: the app name shown above the page title. Falls back to
  *   the container's name from `getContainerName_()` in the host file, only where a container is active (not in the web app).
@@ -26,9 +26,36 @@
 const FALLBACK_EDITORS = ['you@example.org'];
 
 const LOGO_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
-  '<rect width="32" height="32" rx="8" fill="#7a1f5c"/>' +
-  '<path d="M9 22V10l7 8 7-8v12" fill="none" stroke="#fff" stroke-width="3"/>' +
+  '<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+  '<circle cx="32" cy="32" r="32" fill="#276182"/>' +
+  '<g filter="url(#filter0_d_517_60)">' +
+  '<path d="M18.1621 38.3298C18.1621 78.0427 35.9117 28.7645 35.9117 7.25342L49.2972 37.3849H37.8839" stroke="white" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel"/>' +
+  '</g>' +
+  '<g filter="url(#filter1_d_517_60)">' +
+  '<path d="M18.1621 38.3298C18.1621 78.0427 35.9117 28.7645 35.9117 7.25342L49.2972 37.3849H37.8839" stroke="white" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel"/>' +
+  '</g>' +
+  '<defs>' +
+  '<filter id="filter0_d_517_60" x="13.1621" y="6.84741" width="41.0491" height="55.4866" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">' +
+  '<feFlood flood-opacity="0" result="BackgroundImageFix"/>' +
+  '<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>' +
+  '<feOffset dy="4"/>' +
+  '<feGaussianBlur stdDeviation="2"/>' +
+  '<feComposite in2="hardAlpha" operator="out"/>' +
+  '<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>' +
+  '<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_517_60"/>' +
+  '<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_517_60" result="shape"/>' +
+  '</filter>' +
+  '<filter id="filter1_d_517_60" x="13.1621" y="6.84741" width="41.0491" height="55.4866" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">' +
+  '<feFlood flood-opacity="0" result="BackgroundImageFix"/>' +
+  '<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>' +
+  '<feOffset dy="4"/>' +
+  '<feGaussianBlur stdDeviation="2"/>' +
+  '<feComposite in2="hardAlpha" operator="out"/>' +
+  '<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>' +
+  '<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_517_60"/>' +
+  '<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_517_60" result="shape"/>' +
+  '</filter>' +
+  '</defs>' +
   '</svg>';
 
 /** Reads a fixture switch from Script Properties. */
