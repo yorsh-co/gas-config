@@ -22,6 +22,17 @@ The fixture is `app.js`, `appsscript.json` and one host file, `manual/hosts/<hos
    npx clasp push --force
    ```
 
+   `MANUAL_CONFIG_HOST` names the container the project is bound to, and must be one of these values:
+
+   | Value    | Container    | Host file                |
+   | -------- | ------------ | ------------------------ |
+   | `sheets` | Spreadsheet  | `manual/hosts/sheets.js` |
+   | `docs`   | Document     | `manual/hosts/docs.js`   |
+   | `slides` | Presentation | `manual/hosts/slides.js` |
+   | `forms`  | Form         | `manual/hosts/forms.js`  |
+
+   Any other value makes the build exit with an error.
+
 5. Reload the spreadsheet. A **Settings** menu appears. The first use asks for authorization (check 1).
 6. For the page, first set the `MANUAL_APP_NAME` script property (a web app has no active container, so there is no name to fall back on). Then, in the Apps Script editor: Deploy, New deployment, Web app. Execute as: **User accessing the web app**. Who has access: **Anyone with Google account**. Copy the `/exec` URL. After a later push, create a new version of the deployment to serve it.
 
