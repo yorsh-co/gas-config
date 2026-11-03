@@ -206,8 +206,10 @@ describe('createHtmlOutput', () => {
     const ui = createUi();
 
     config.showSidebar(ui as never);
-
     expect(lastOutput(mocks.outputs).title).toBe('Trust settings');
+
+    config.showDialog(ui as never);
+    expect(ui.showModalDialog.mock.calls[0]?.[1]).toBe('Trust settings');
   });
 
   it('reports a read-only view to a user who is not an editor', () => {

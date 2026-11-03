@@ -38,6 +38,10 @@ test('shows the owner logo on every surface in the yorsh theme only', async ({
   for (const surface of SURFACES) {
     await openReady(page, { surface, theme: 'yorsh' });
     await expect(page.locator('img.logo')).toHaveCount(1);
+    if (surface !== 'page') {
+      const box = await page.locator('img.logo').boundingBox();
+      expect([box!.width, box!.height]).toEqual([32, 32]);
+    }
 
     await openReady(page, { surface, theme: 'workspace' });
     await expect(page.locator('img.logo')).toHaveCount(0);

@@ -23,20 +23,20 @@ The fixture is `app.js`, `appsscript.json` and one host file, `manual/hosts/<hos
    ```
 
 5. Reload the spreadsheet. A **Settings** menu appears. The first use asks for authorization (check 1).
-6. For the page, in the Apps Script editor: Deploy, New deployment, Web app. Execute as: **User accessing the web app**. Who has access: **Anyone with Google account**. Copy the `/exec` URL. After a later push, create a new version of the deployment to serve it.
+6. For the page, first set the `MANUAL_APP_NAME` script property (a web app has no active container, so there is no name to fall back on). Then, in the Apps Script editor: Deploy, New deployment, Web app. Execute as: **User accessing the web app**. Who has access: **Anyone with Google account**. Copy the `/exec` URL. After a later push, create a new version of the deployment to serve it.
 
 ### Switches
 
 Set these under Project Settings, Script properties. The fixture reads them on every execution, so there is no need to push again.
 
-| Property              | Effect                                                           |
-| --------------------- | ---------------------------------------------------------------- |
-| `MANUAL_EDITORS`      | Comma-separated editor emails; overrides `FALLBACK_EDITORS`      |
-| `MANUAL_THEME`        | `workspace`, or `yorsh` (default)                                |
-| `MANUAL_LOGO`         | `true` shows a `data:` image logo (the Yorsh theme only)         |
-| `MANUAL_BRAND_COLOR`  | A hex colour such as `#7a1f5c`, overriding the primary colour    |
-| `MANUAL_APP_NAME`     | The app name shown on the page; defaults to the container's name |
-| `MANUAL_LARGE_SCHEMA` | `true` adds 150 fields in 5 more groups                          |
+| Property              | Effect                                                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `MANUAL_EDITORS`      | Comma-separated editor emails; overrides `FALLBACK_EDITORS`                                                             |
+| `MANUAL_THEME`        | `workspace`, or `yorsh` (default)                                                                                       |
+| `MANUAL_LOGO`         | `true` shows a `data:` image logo (the Yorsh theme only)                                                                |
+| `MANUAL_BRAND_COLOR`  | A hex colour such as `#7a1f5c`, overriding the primary colour                                                           |
+| `MANUAL_APP_NAME`     | The app name shown on the page; falls back to the container's name only where a container is active, not in the web app |
+| `MANUAL_LARGE_SCHEMA` | `true` adds 150 fields in 5 more groups                                                                                 |
 
 Values the UI saves are Script Properties named `gasConfig:<key>`; `gasConfig:__version` and `gasConfig:__saveId` are the version stamp and last save id.
 

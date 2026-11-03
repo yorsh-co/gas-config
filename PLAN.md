@@ -133,3 +133,5 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 
 - Should each item go on its own `bugfix/*` or `feature/*` branch, as the release PLAN.md step 3 asks? This plan uses one feature branch.
 - After merging, re-run checks #1, #6, #10, #14 and #15 on a deployed fixture to confirm.
+- Deferred: `appName_()` runs at global scope in every fixture execution. This is a fixture-only cost and is accepted.
+- Deferred: `MANUAL_CONFIG_HOST` and the `host.js` push order have no tests, and `manual:build` has not been run end to end. This needs a real script ID and should be verified when the checks are re-run on a deployed fixture.
