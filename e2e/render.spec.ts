@@ -41,3 +41,15 @@ test('shows the owner logo on the page surface in the yorsh theme only', async (
   await openReady(page, { surface: 'page', theme: 'workspace' });
   await expect(page.locator('img.logo')).toHaveCount(0);
 });
+
+test('keeps the page footer content off the screen edges on a phone', async ({
+  page,
+}) => {
+  await openReady(page, { surface: 'page', theme: 'workspace' });
+  await page.setViewportSize({ width: 375, height: 700 });
+
+  const status = await page.locator('.footer-inner .status').boundingBox();
+  const save = await page.getByRole('button', { name: 'Save' }).boundingBox();
+  expect(status!.x).toBeGreaterThanOrEqual(16);
+  expect(375 - (save!.x + save!.width)).toBeGreaterThanOrEqual(16);
+});

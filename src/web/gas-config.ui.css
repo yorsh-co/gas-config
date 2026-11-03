@@ -713,9 +713,9 @@ body {
 }
 
 :root[data-surface='page'] .footer-inner {
-  max-width: 720px;
+  max-width: 752px;
   margin: 0 auto;
-  padding-inline: 0;
+  padding-inline: 16px;
 }
 
 .status {

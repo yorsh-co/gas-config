@@ -46,7 +46,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Done when: `npx vitest run test/manual-fixture.test.ts test/scopes.test.ts` passes; `npm run lint` passes
 - Review: deep
 
-### Phase 2: Page footer inline padding — [ ] todo
+### Phase 2: Page footer inline padding — [x] done
 
 - Files: `src/web/gas-config.ui.css`, `e2e/render.spec.ts`
 - Root cause: `src/web/gas-config.ui.css:715-719`, where `:root[data-surface='page'] .footer-inner` sets `padding-inline: 0`. Below 720px the footer's content sits on the viewport edge. `.main` keeps 16px for the card.
@@ -118,6 +118,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 ## Log
 
 - Phase 1: added a `manual/app.js` eslint global override for `getUi_` (outside the listed files). `@OnlyCurrentDoc` is a standalone comment, which the test enforces. The `MANUAL_CONFIG_HOST` check has no test, and `manual:build` was not run end to end.
+
+- Phase 2: no deviations.
 
 ## Open questions
 
