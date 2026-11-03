@@ -4,9 +4,9 @@
  * Pushed by `npm run manual:build` after the bundled peers and the compiled
  * library, as a global-scope Apps Script file. It is consumer code: it
  * declares the one `GasConfig` at global scope (so it exists in every
- * execution, including the `google.script.run` call), adds the menu, serves
- * the page and picks the host document's `Ui` itself. That last part is why
- * gas-config never names the document services.
+ * execution, including the `google.script.run` call), adds the menu and serves
+ * the page. The host document's `Ui` comes from `getUi_()` in the host file
+ * (manual/hosts/), which `npm run manual:build` pushes just before this one.
  *
  * Behaviour is switched with Script Properties (Project Settings, Script
  * properties), so the fixture needs no re-push between checks:
@@ -189,29 +189,6 @@ const config = new GasConfig({
   schema: schema_(),
   logger: logger_(),
 });
-
-/**
- * The `Ui` of whichever document this script is bound to. Each service
- * throws when called outside its own host, so the first that answers wins.
- * This is consumer code: the library takes the `Ui` as an argument and never
- * names these services, which would ask every consumer for all their scopes.
- */
-function getUi_() {
-  const hosts = [
-    () => SpreadsheetApp.getUi(),
-    () => DocumentApp.getUi(),
-    () => SlidesApp.getUi(),
-    () => FormApp.getUi(),
-  ];
-  for (const host of hosts) {
-    try {
-      return host();
-    } catch (error) {
-      // Not this host.
-    }
-  }
-  throw new Error('This script is not bound to a document.');
-}
 
 function onOpen() {
   getUi_()

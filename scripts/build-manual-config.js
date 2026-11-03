@@ -4,7 +4,8 @@
  *
  * Run through `npm run manual:build`, which compiles the library first. The
  * target project is read from MANUAL_CONFIG_SCRIPT_ID, so no ID is stored in
- * the repository. See manual/README.md.
+ * the repository. MANUAL_CONFIG_HOST (sheets, docs, slides or forms) picks the
+ * host file, so the project asks for that host's scope only. See manual/README.md.
  */
 import { execFileSync } from 'node:child_process';
 import {
@@ -25,6 +26,15 @@ const scriptId = process.env.MANUAL_CONFIG_SCRIPT_ID;
 if (!scriptId) {
   console.error(
     'MANUAL_CONFIG_SCRIPT_ID is not set (the throwaway bound project).',
+  );
+  process.exit(1);
+}
+
+const HOSTS = ['sheets', 'docs', 'slides', 'forms'];
+const host = process.env.MANUAL_CONFIG_HOST;
+if (!HOSTS.includes(host)) {
+  console.error(
+    `MANUAL_CONFIG_HOST must be one of ${HOSTS.join(', ')} (the container type).`,
   );
   process.exit(1);
 }
@@ -72,10 +82,16 @@ for (const file of gasDevConfig.loadOrder) {
   libraryFiles.push(target);
 }
 
+cpSync(join(ROOT, `manual/hosts/${host}.js`), join(OUT, 'host.js'));
 cpSync(join(ROOT, 'manual/app.js'), join(OUT, 'app.js'));
 cpSync(join(ROOT, 'manual/appsscript.json'), join(OUT, 'appsscript.json'));
 
-const pushOrder = ['lib/gas-libraries.js', ...libraryFiles, 'app.js'];
+const pushOrder = [
+  'lib/gas-libraries.js',
+  ...libraryFiles,
+  'host.js',
+  'app.js',
+];
 emit(
   '.clasp.json',
   `${JSON.stringify({ scriptId, rootDir: '.', filePushOrder: pushOrder }, null, 2)}\n`,

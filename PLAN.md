@@ -26,7 +26,7 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 
 ## Phases
 
-### Phase 1: Single-host fixture — [ ] todo
+### Phase 1: Single-host fixture — [x] done
 
 - Files: `manual/app.js`, `manual/hosts/sheets.js`, `manual/hosts/docs.js`, `manual/hosts/slides.js`, `manual/hosts/forms.js`, `scripts/build-manual-config.js`, `test/manual-fixture.test.ts`, `manual/README.md`, `README.md`
 - Root cause: `manual/app.js` `getUi_()` calls `SpreadsheetApp.getUi()`, `DocumentApp.getUi()`, `SlidesApp.getUi()` and `FormApp.getUi()`. Apps Script finds scopes by scanning for service names, so every fixture project asks for all four hosts' data scopes.
@@ -116,6 +116,8 @@ Act on the findings from `manual/README.md` checks #1, #6, #10 and #14 (release 
 - Review: standard
 
 ## Log
+
+- Phase 1: added a `manual/app.js` eslint global override for `getUi_` (outside the listed files). `@OnlyCurrentDoc` is a standalone comment, which the test enforces. The `MANUAL_CONFIG_HOST` check has no test, and `manual:build` was not run end to end.
 
 ## Open questions
 
