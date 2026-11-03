@@ -164,6 +164,54 @@ describe('createHtmlOutput', () => {
     );
   });
 
+  it('appends the appName to the tab title', () => {
+    const named = setup({ title: 'Trust settings', appName: 'Portal' });
+    const plain = setup({ title: 'Trust settings' });
+
+    expect(
+      (named.config.createHtmlOutput() as unknown as MockHtmlOutput).title,
+    ).toBe('Trust settings · Portal');
+    expect(
+      (
+        named.config.createHtmlOutput({
+          title: 'Mine',
+        }) as unknown as MockHtmlOutput
+      ).title,
+    ).toBe('Mine · Portal');
+    expect(
+      (plain.config.createHtmlOutput() as unknown as MockHtmlOutput).title,
+    ).toBe('Trust settings');
+  });
+
+  it('includes the appName in the state only when set', () => {
+    const named = setup({ appName: 'Portal' }).config.createHtmlOutput();
+    const plain = setup().config.createHtmlOutput();
+
+    expect(bootstrapOf(named as unknown as MockHtmlOutput).state?.appName).toBe(
+      'Portal',
+    );
+    expect(
+      bootstrapOf(plain as unknown as MockHtmlOutput).state,
+    ).not.toHaveProperty('appName');
+  });
+
+  it('rejects an invalid appName', () => {
+    for (const appName of ['', '   ', 3 as never]) {
+      expect(() => setup({ appName })).toThrow(/Invalid "appName"/);
+    }
+  });
+
+  it('leaves sidebar and dialog titles unchanged by appName', () => {
+    const { config, mocks } = setup({ title: 'Trust settings', appName: 'P' });
+    const ui = createUi();
+
+    config.showSidebar(ui as never);
+    expect(lastOutput(mocks.outputs).title).toBe('Trust settings');
+
+    config.showDialog(ui as never);
+    expect(ui.showModalDialog.mock.calls[0]?.[1]).toBe('Trust settings');
+  });
+
   it('reports a read-only view to a user who is not an editor', () => {
     const { config } = setup({}, { email: 'visitor@example.org' });
 

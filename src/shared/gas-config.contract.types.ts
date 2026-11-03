@@ -55,6 +55,7 @@ interface GasConfigGroup {
 /** Everything the UI needs to render the settings and edit them. */
 interface GasConfigSettingsState {
   title: string;
+  appName?: string;
   description?: string;
   canEdit: boolean;
   /** Opaque stamp of the stored values, sent back with each save. */

@@ -63,4 +63,12 @@ export default gasEslint(
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
+  // app.js calls getUi_() and getContainerName_(), which the host file in
+  // manual/hosts/ defines.
+  {
+    files: ['manual/app.js'],
+    languageOptions: {
+      globals: { getUi_: 'readonly', getContainerName_: 'readonly' },
+    },
+  },
 );

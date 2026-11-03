@@ -4,9 +4,9 @@
  * Pushed by `npm run manual:build` after the bundled peers and the compiled
  * library, as a global-scope Apps Script file. It is consumer code: it
  * declares the one `GasConfig` at global scope (so it exists in every
- * execution, including the `google.script.run` call), adds the menu, serves
- * the page and picks the host document's `Ui` itself. That last part is why
- * gas-config never names the document services.
+ * execution, including the `google.script.run` call), adds the menu and serves
+ * the page. The host document's `Ui` comes from `getUi_()` in the host file
+ * (manual/hosts/), which `npm run manual:build` pushes just before this one.
  *
  * Behaviour is switched with Script Properties (Project Settings, Script
  * properties), so the fixture needs no re-push between checks:
@@ -17,6 +17,8 @@
  * - MANUAL_LOGO: `true` to show a `data:` image logo (the yorsh theme only).
  * - MANUAL_BRAND_COLOR: a hex colour such as `#7a1f5c`, overriding the
  *   primary colour.
+ * - MANUAL_APP_NAME: the app name shown above the page title. Falls back to
+ *   the container's name from `getContainerName_()` in the host file, only where a container is active (not in the web app).
  * - MANUAL_LARGE_SCHEMA: `true` to add 150 extra fields in 5 groups.
  */
 
@@ -32,6 +34,17 @@ const LOGO_SVG =
 /** Reads a fixture switch from Script Properties. */
 function setting_(name) {
   return PropertiesService.getScriptProperties().getProperty(name);
+}
+
+/** The app name: the switch, else the container's name, else none. */
+function appName_() {
+  const named = setting_('MANUAL_APP_NAME');
+  if (named) return named;
+  try {
+    return getContainerName_() || undefined;
+  } catch (error) {
+    return undefined;
+  }
 }
 
 function editors_() {
@@ -180,6 +193,7 @@ function logger_() {
 // Declared once, at global scope, so it exists in every execution.
 const config = new GasConfig({
   title: 'Fixture settings',
+  appName: appName_(),
   description:
     'These settings control how this project runs. Changes apply the next time it runs.',
   theme: setting_('MANUAL_THEME') === 'workspace' ? 'workspace' : 'yorsh',
@@ -189,29 +203,6 @@ const config = new GasConfig({
   schema: schema_(),
   logger: logger_(),
 });
-
-/**
- * The `Ui` of whichever document this script is bound to. Each service
- * throws when called outside its own host, so the first that answers wins.
- * This is consumer code: the library takes the `Ui` as an argument and never
- * names these services, which would ask every consumer for all their scopes.
- */
-function getUi_() {
-  const hosts = [
-    () => SpreadsheetApp.getUi(),
-    () => DocumentApp.getUi(),
-    () => SlidesApp.getUi(),
-    () => FormApp.getUi(),
-  ];
-  for (const host of hosts) {
-    try {
-      return host();
-    } catch (error) {
-      // Not this host.
-    }
-  }
-  throw new Error('This script is not bound to a document.');
-}
 
 function onOpen() {
   getUi_()

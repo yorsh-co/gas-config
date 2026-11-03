@@ -216,11 +216,35 @@ body {
   height: 40px;
 }
 
+.surface-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: var(--section-gap);
+}
+
+.surface-header .intro {
+  margin-bottom: 0;
+}
+
+.surface-header .logo {
+  width: 32px;
+  height: 32px;
+}
+
 .page-title {
   margin: 0;
   font-size: 22px;
   line-height: 28px;
   font-weight: var(--title-weight);
+}
+
+.app-name {
+  margin: 0 0 2px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
 }
 
 .page-heading .intro {
@@ -431,6 +455,10 @@ body {
 
 .switch-row .label {
   cursor: pointer;
+}
+
+.switch-row .switch:disabled + .label {
+  cursor: default;
 }
 
 .switch-row .icon-btn {
@@ -713,9 +741,9 @@ body {
 }
 
 :root[data-surface='page'] .footer-inner {
-  max-width: 720px;
+  max-width: 752px;
   margin: 0 auto;
-  padding-inline: 0;
+  padding-inline: 16px;
 }
 
 .status {

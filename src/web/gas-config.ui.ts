@@ -359,9 +359,10 @@
     dom.banner = el('div', { class: 'banner-slot' });
     dom.content.appendChild(dom.banner);
 
+    const logoUrl = boot.brand.logoUrl ?? settings.brand?.logoUrl;
+    const showLogo = theme === 'yorsh' && Boolean(logoUrl);
+
     if (surface === 'page') {
-      const logoUrl = boot.brand.logoUrl ?? settings.brand?.logoUrl;
-      const showLogo = theme === 'yorsh' && Boolean(logoUrl);
       dom.content.appendChild(
         el(
           'header',
@@ -378,11 +379,31 @@
           el(
             'div',
             { class: 'page-heading' },
+            settings.appName
+              ? el('p', { class: 'app-name', text: settings.appName })
+              : null,
             el('h1', { class: 'page-title', text: settings.title }),
             settings.description
               ? el('p', { class: 'intro', text: settings.description })
               : null,
           ),
+        ),
+      );
+    } else if (showLogo) {
+      dom.content.appendChild(
+        el(
+          'header',
+          { class: 'surface-header' },
+          el('img', {
+            class: 'logo',
+            src: logoUrl,
+            alt: '',
+            width: '32',
+            height: '32',
+          }),
+          settings.description
+            ? el('p', { class: 'intro', text: settings.description })
+            : null,
         ),
       );
     } else if (settings.description) {

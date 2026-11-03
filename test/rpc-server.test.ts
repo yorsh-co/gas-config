@@ -233,6 +233,7 @@ describe('GasConfigRpc getSettings', () => {
       {
         schema: schema as GasConfigSchema,
         title: mock.title,
+        appName: mock.appName as string,
         description: mock.description as string,
         groups: mock.groups,
         brand: { logoUrl: 'https://example.org/logo.svg' },

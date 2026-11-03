@@ -32,12 +32,61 @@ for (const surface of SURFACES) {
   }
 }
 
-test('shows the owner logo on the page surface in the yorsh theme only', async ({
+test('shows the owner logo on every surface in the yorsh theme only', async ({
   page,
 }) => {
-  await openReady(page, { surface: 'page', theme: 'yorsh' });
-  await expect(page.locator('img.logo')).toHaveCount(1);
+  for (const surface of SURFACES) {
+    await openReady(page, { surface, theme: 'yorsh' });
+    await expect(page.locator('img.logo')).toHaveCount(1);
+    if (surface !== 'page') {
+      const box = await page.locator('img.logo').boundingBox();
+      expect([box!.width, box!.height]).toEqual([32, 32]);
+    }
 
+    await openReady(page, { surface, theme: 'workspace' });
+    await expect(page.locator('img.logo')).toHaveCount(0);
+  }
+});
+
+test('keeps the page footer content off the screen edges on a phone', async ({
+  page,
+}) => {
   await openReady(page, { surface: 'page', theme: 'workspace' });
-  await expect(page.locator('img.logo')).toHaveCount(0);
+  await page.setViewportSize({ width: 375, height: 700 });
+
+  const status = await page.locator('.footer-inner .status').boundingBox();
+  const save = await page.getByRole('button', { name: 'Save' }).boundingBox();
+  expect(status!.x).toBeGreaterThanOrEqual(16);
+  expect(375 - (save!.x + save!.width)).toBeGreaterThanOrEqual(16);
+});
+
+test('shows no pointer cursor on the label of a disabled switch', async ({
+  page,
+}) => {
+  await openReady(page, { scenario: 'readonly' });
+
+  const label = page
+    .locator('.switch-row')
+    .filter({ hasText: 'Email results to respondents' })
+    .locator('.label');
+  await expect(label).toHaveCSS('cursor', 'default');
+});
+
+test('shows the app name before the title on the page surface only', async ({
+  page,
+}) => {
+  await openReady(page, { surface: 'page', theme: 'workspace' });
+  const appName = page.locator('.page-heading > p.app-name');
+  await expect(appName).toHaveText('Quiz marker');
+  const order = await page
+    .locator('.page-heading')
+    .evaluate((heading) =>
+      Array.from(heading.children).map((child) => child.tagName),
+    );
+  expect(order.slice(0, 2)).toEqual(['P', 'H1']);
+
+  for (const surface of ['dialog', 'sidebar'] as const) {
+    await openReady(page, { surface, theme: 'workspace' });
+    await expect(page.locator('.app-name')).toHaveCount(0);
+  }
 });

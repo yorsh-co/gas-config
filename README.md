@@ -84,7 +84,7 @@ function gradeAll() {
 | `https://www.googleapis.com/auth/userinfo.email`      | The signed-in user is checked against `editors` with `Session.getActiveUser().getEmail()` |
 | `https://www.googleapis.com/auth/script.container.ui` | Your code opens the dialog or sidebar through the host's `getUi()`                        |
 
-Apps Script detects both from the code, so you do not list them in `appsscript.json`. `gas-config` never names a container service (`SpreadsheetApp`, `DocumentApp`, `SlidesApp` or `FormApp`): Apps Script derives scopes by scanning the code for service names, and one reference would ask a Docs project for access to Sheets. Instead you pass your own `getUi()` to [`showDialog`](#show-the-settings-in-a-dialog) and [`showSidebar`](#show-the-settings-in-a-sidebar), so the project is asked for the scopes of the services it uses and no more. A project that only serves the settings as a web page never calls `getUi()` and is not asked for `script.container.ui`.
+Apps Script detects both from the code, so you do not list them in `appsscript.json`. `gas-config` never names a container service (`SpreadsheetApp`, `DocumentApp`, `SlidesApp` or `FormApp`): Apps Script derives scopes by scanning the code for service names, and one reference would ask a Docs project for access to Sheets. Instead you pass your own `getUi()` to [`showDialog`](#show-the-settings-in-a-dialog) and [`showSidebar`](#show-the-settings-in-a-sidebar), so the project is asked for the scopes of the services it uses and no more. Your own `getUi()` call names the host service, which adds that host's scope; `/** @OnlyCurrentDoc */` narrows it to the `…currentonly` scope. A project that only serves the settings as a web page never calls `getUi()` and is not asked for `script.container.ui`.
 
 ### Deployment
 
@@ -340,6 +340,7 @@ The instance must live at global scope because the settings UI calls back into y
 | `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted or empty means nobody. See [Access](#access)          |
 | `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`            |
 | `description`   | `string`                      | Text under the heading                                                                               |
+| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`      |
 | `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                       |
 | `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                             |
 | `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                |
@@ -532,7 +533,7 @@ Values live in Script Properties.
 | `theme: 'workspace'` | The default. Material 3 as used in Google Workspace, so the UI feels native to the host      |
 | `theme: 'yorsh'`     | The Yorsh brand look                                                                         |
 | `brand.primaryColor` | `#rgb` or `#rrggbb`. Replaces the theme's primary colour on buttons, focus rings and accents |
-| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on the page surface in the `yorsh` theme only  |
+| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on every surface in the `yorsh` theme only     |
 
 ```js
 const config = new GasConfig({

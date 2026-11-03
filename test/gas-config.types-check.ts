@@ -38,6 +38,7 @@ const config = new GasConfig({
   editors: ['a@example.org'],
   title: 'Settings',
   description: 'About',
+  appName: 'Trust portal',
   logger: console,
   lockService: { withLock: (_scope, callback) => callback() },
   lockTimeoutMs: 1000,

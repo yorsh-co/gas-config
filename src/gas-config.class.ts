@@ -131,6 +131,7 @@ const _GAS_CONFIG_DEFAULT_LOCK_SERVICE: GasConfigLockService = Object.freeze({
  */
 class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   title: string;
+  appName?: string;
   description?: string;
   groups: GasConfigGroup[];
   theme: GasConfigTheme;
@@ -164,6 +165,9 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     }
 
     this.title = this._resolveTitle(options.title);
+    if (options.appName !== undefined) {
+      this.appName = this._resolveText('appName', options.appName);
+    }
     if (options.description !== undefined) {
       this.description = this._resolveText('description', options.description);
     }

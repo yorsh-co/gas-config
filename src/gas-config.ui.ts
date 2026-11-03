@@ -126,6 +126,7 @@ const _GasConfigUi = Object.freeze({
 
     const state: GasConfigSettingsState = {
       title: config.title,
+      ...(config.appName !== undefined && { appName: config.appName }),
       ...(config.description !== undefined && {
         description: config.description,
       }),
@@ -212,9 +213,11 @@ const _GasConfigUi = Object.freeze({
     options: GasConfigPageOptions | undefined,
   ): GoogleAppsScript.HTML.HtmlOutput {
     const title = _GasConfigUi.pageTitle(config, options);
+    const tabTitle =
+      config.appName === undefined ? title : `${title} · ${config.appName}`;
     return _GasConfigUi
       .render(config, 'page')
-      .setTitle(title)
+      .setTitle(tabTitle)
       .addMetaTag('viewport', _GAS_CONFIG_VIEWPORT);
   },
 
