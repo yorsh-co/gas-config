@@ -678,7 +678,7 @@ The generated file is committed and never edited by hand. `gas-dev-config check`
 
 ## Peer Type Declarations
 
-Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts`: copy that file into the consuming package (e.g. `src/internal/`) and do not edit the copy.
+Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts` at every `vX.Y.Z` tag. A consuming package lists `"gas-config": "<range>"` under `gasDevConfig.peers` in its `package.json` and runs `gas-dev-config peers sync` (gas-dev-config 1.10.0 or later). It writes `src/internal/gas-config.peer.types.d.ts` from the highest tag that satisfies the range, and `gas-dev-config peers sync --check` reports a stale copy. Do not edit the copy.
 
 The file is type-checked standalone by `npm run typecheck:peer`, and a test compares it with `src/`, so a change to the public surface that is not mirrored there fails `npm run check`.
 
