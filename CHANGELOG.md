@@ -2,7 +2,7 @@
 
 ---
 
-## [Unreleased]
+## [2.0.0] - 2026-11-03
 
 gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Script Properties and a settings UI for Sheets, Docs, Slides, Forms and web apps. The old API is gone and there is no migration path; the README documents the new one.
 
