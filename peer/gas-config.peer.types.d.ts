@@ -16,7 +16,7 @@
  * Usage: copy into the consuming package as `src/internal/`.
  *
  * @see https://github.com/yorsh-co/gas-config
- * @version 2.0.0
+ * @version 2.0.1
  */
 
 /** Every field type a schema can declare. */
