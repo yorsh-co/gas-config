@@ -1,6 +1,6 @@
 {
   "name": "gas-config",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A settings UI for Google Apps Script projects.",
   "license": "MIT",
   "author": "Joshua Porter",
