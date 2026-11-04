@@ -8,6 +8,8 @@
 
 `gas-config` stores typed configuration in Script Properties and gives it a settings UI built from a schema you declare in code. The UI opens as a dialog or a sidebar in the host document, or as a web page for standalone scripts. It looks native to Google Workspace by default, or carries your own brand. Your code reads the values with `config.get(...)`.
 
+![The settings dialog in Google Sheets with the workspace theme](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/dialog-workspace.png)
+
 > **Disclaimer:**
 > This project and [Yorsh](https://github.com/yorsh-co) are independent and are not affiliated with, endorsed by, or associated with Google LLC.
 
@@ -403,6 +405,8 @@ function openSettingsSidebar() {
 
 `showSidebar(ui, options?)` takes the same `ui` and an optional `title`. The width of a sidebar is fixed by the host (P8).
 
+![The settings in a sidebar in Google Sheets with the workspace theme](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/sidebar-workspace.png)
+
 ### Serve the settings as a web page
 
 ```js
@@ -412,6 +416,8 @@ function doGet() {
 ```
 
 `createHtmlOutput(options?)` returns an `HtmlOutput` for a web app's `doGet`, with an optional `title`. It needs the [deployment](#deployment) described above. To keep the settings behind your own router, see [Using with gas-webapp](#using-with-gas-webapp).
+
+![The settings served as a web page with the workspace theme](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/page-workspace.png)
 
 ### Read values
 
@@ -462,6 +468,8 @@ A required field may have an empty default, or none: it reads as `null` and show
 
 Rules are checked in the browser while the user edits, and again on the server for every save. Empty optional values are always valid. These are the exact messages:
 
+![The dialog showing a validation error for a Pass mark outside the allowed range](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/validation-error.png)
+
 | Rule                    | Message                                    |
 | ----------------------- | ------------------------------------------ |
 | `required` and empty    | `This field is required`                   |
@@ -511,6 +519,8 @@ Values cross `google.script.run` as JSON, so dates are `'YYYY-MM-DD'` strings, n
 - A save from such a user fails with a 401 before the lock is taken or anything is read: `[GasConfig] Unable to identify the signed-in user` when `Session` throws or returns an empty email, and `[GasConfig] Not authorized` when the user is not listed. Neither message contains the email. The UI switches to read-only.
 - The user is read lazily, once per instance. `get()` and `getAll()` are never gated.
 
+![The settings page as a non-editor, with the read-only banner and no Save button](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/read-only.png)
+
 > **Warning:**
 > `editors` is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read and change Script Properties directly or run code that does.
 
@@ -545,6 +555,8 @@ const config = new GasConfig({
   schema: {/* ... */},
 });
 ```
+
+![The yorsh theme with a custom brand colour and logo, shown as a web page](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/theme-yorsh.png)
 
 The options are validated in the constructor. Brand overrides set design tokens only; the layout is the same for every brand. The page loads the Roboto font from Google Fonts and falls back to the system font (P9).
 
