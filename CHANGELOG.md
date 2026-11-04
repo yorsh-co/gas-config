@@ -2,6 +2,14 @@
 
 ---
 
+## [2.0.1] - 2026-11-04
+
+### Changed
+
+- Releases also publish the GitHub Release for `vX.Y.Z` (`gasDevRelease.githubRelease`); `gas-dev-release` dev dependency bumped to `^1.2.1`
+
+---
+
 ## [2.0.0] - 2026-11-03
 
 gas-config 2.0 replaces the sheet-backed 1.x library with a typed schema over Script Properties and a settings UI for Sheets, Docs, Slides, Forms and web apps. The old API is gone and there is no migration path; the README documents the new one.
