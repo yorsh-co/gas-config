@@ -5,9 +5,8 @@ import { ROOT } from './harness';
 import { SCHEMA, prop, request, setup } from './helpers';
 
 /**
- * One test per applicable item of "Lessons to carry into 2.0" in
- * docs/v2-plan.md. Items covered in depth elsewhere are checked here at the
- * level of the behaviour the lesson names.
+ * One test per lesson from 1.x that applies to 2.0. Lessons covered in depth
+ * elsewhere are checked here at the level of the behaviour they name.
  */
 
 describe('lesson: a required entry may have an empty default', () => {
