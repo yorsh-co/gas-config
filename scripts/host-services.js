@@ -17,3 +17,17 @@ export const HOST_SERVICES = [
 export function namedHostServices(code) {
   return HOST_SERVICES.filter((name) => new RegExp(`\\b${name}\\b`).test(code));
 }
+
+/**
+ * Refuses code that names a host service, since each one adds its scope.
+ * @param {string} code Source text to scan.
+ * @throws {Error} When any host service is named.
+ */
+export function assertNoHostServices(code) {
+  const named = namedHostServices(code);
+  if (named.length > 0) {
+    throw new Error(
+      `Bundled peers name ${named.join(', ')}, which adds those services' scopes to every fixture. See manual/README.md check 1.`,
+    );
+  }
+}

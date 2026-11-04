@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { namedHostServices } from '../scripts/host-services.js';
+import {
+  assertNoHostServices,
+  namedHostServices,
+} from '../scripts/host-services.js';
 import { ROOT } from './harness';
 
 /**
@@ -75,5 +78,27 @@ describe('namedHostServices', () => {
     expect(
       namedHostServices('FormApp SlidesApp DocumentApp SpreadsheetApp'),
     ).toEqual(['SpreadsheetApp', 'DocumentApp', 'SlidesApp', 'FormApp']);
+  });
+});
+
+describe('assertNoHostServices', () => {
+  it('throws the refusal message naming the service', () => {
+    expect(() => assertNoHostServices('SpreadsheetApp.openById(x)')).toThrow(
+      new Error(
+        "Bundled peers name SpreadsheetApp, which adds those services' scopes to every fixture. See manual/README.md check 1.",
+      ),
+    );
+  });
+
+  it('lists every named service in HOST_SERVICES order', () => {
+    expect(() =>
+      assertNoHostServices('FormApp SlidesApp DocumentApp SpreadsheetApp'),
+    ).toThrow(
+      /^Bundled peers name SpreadsheetApp, DocumentApp, SlidesApp, FormApp,/,
+    );
+  });
+
+  it('does not throw when no service is named', () => {
+    expect(() => assertNoHostServices('const x = 1;')).not.toThrow();
   });
 });
