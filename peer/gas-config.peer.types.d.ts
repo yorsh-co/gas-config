@@ -13,10 +13,11 @@
  * `include: ["src/**\/*.ts"]` but emits nothing, so no counterpart reaches
  * dist/ or the published package.
  *
- * Usage: copy into the consuming package as `src/internal/`.
+ * Usage: list `gas-config` in `gasDevConfig.peers` and run
+ * `gas-dev-config peers sync`, which writes it to `src/internal/`.
  *
  * @see https://github.com/yorsh-co/gas-config
- * @version 2.0.3
+ * @version 2.0.4
  */
 
 /** Every field type a schema can declare. */
