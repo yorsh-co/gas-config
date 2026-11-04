@@ -466,9 +466,9 @@ A required field may have an empty default, or none: it reads as `null` and show
 
 ### Validation messages
 
-![The dialog showing a validation error for a Pass mark outside the allowed range](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/validation-error.png)
-
 Rules are checked in the browser while the user edits, and again on the server for every save. Empty optional values are always valid. These are the exact messages:
+
+![The dialog showing a validation error for a Pass mark outside the allowed range](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/validation-error.png)
 
 | Rule                    | Message                                    |
 | ----------------------- | ------------------------------------------ |
