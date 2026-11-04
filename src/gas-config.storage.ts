@@ -1,150 +1,273 @@
+/** Prefix of every Script Property gas-config owns. */
+const _GAS_CONFIG_PROPERTY_PREFIX = 'gasConfig:';
+
 /**
- * Spreadsheet-backed persistence layer for configuration data.
+ * Metadata properties. Keys that match the schema key pattern cannot reach
+ * them, as that pattern must start with a letter.
+ */
+const _GAS_CONFIG_VERSION_PROPERTY = `${_GAS_CONFIG_PROPERTY_PREFIX}__version`;
+const _GAS_CONFIG_SAVE_ID_PROPERTY = `${_GAS_CONFIG_PROPERTY_PREFIX}__saveId`;
+
+/**
+ * Script Properties storage for the config values: one JSON-encoded property
+ * per key, plus a version stamp and the last `saveId`.
+ *
+ * The properties are read once per instance and served from memory. Saves
+ * re-read them under the lock, so a stale cache never overwrites another key.
+ * No Apps Script service is touched until the first read or save.
  */
 class _GasConfigStorage {
-  private readonly _sheetDb: GasSheetDb;
-  private readonly _sheetName: string;
-  private _table: SheetTable<GasConfigTableEntry> | null;
+  private readonly _fields: ReadonlyMap<string, GasConfigClientField>;
+  private readonly _lockService: GasConfigLockService;
+  private readonly _lockTimeoutMs: number;
+  private _properties: GoogleAppsScript.Properties.Properties | null = null;
+  private _cache: GasConfigSnapshot | null = null;
 
-  constructor(gasSheetDbConfig: GasSheetDbConfig, sheetName: string) {
-    this._sheetDb = new GasSheetDb(gasSheetDbConfig);
-    this._sheetName = sheetName;
-    this._table = null;
+  constructor(
+    fields: readonly GasConfigClientField[],
+    lockService: GasConfigLockService,
+    lockTimeoutMs: number,
+  ) {
+    this._fields = new Map(fields.map((field) => [field.key, field]));
+    this._lockService = lockService;
+    this._lockTimeoutMs = lockTimeoutMs;
   }
 
   /**
-   * Lazily initialize the config sheet table reference.
+   * Checks a non-empty value against the shared declarative rules, plus the
+   * type of booleans, which the shared rules accept unchecked.
+   *
+   * @returns An error message, or null when valid.
    */
-  private _loadTable(): SheetTable<GasConfigTableEntry> {
-    if (!this._table) {
-      this._table = this._sheetDb.table<GasConfigTableEntry>({
-        sheetName: this._sheetName,
-      });
+  static check(field: GasConfigClientField, value: unknown): string | null {
+    if (field.type === 'boolean' && typeof value !== 'boolean') {
+      return 'Enter a valid value';
     }
-
-    return this._table;
+    return GasConfigValidation.validateField(field, value);
   }
 
   /**
-   * Build a table entry from schema metadata, only assigning the optional
-   * `description`/`example` fields when present (required for
-   * `exactOptionalPropertyTypes` — assigning `undefined` explicitly to an
-   * optional property is a type error, so these are conditionally set).
+   * Returns the stored values as of the first read of this instance. A value
+   * that is missing, or stored but unusable, is replaced by the field default.
    */
-  private _buildTableEntry(
-    key: string,
-    value: GasConfigValue,
-    meta: GasConfigSchemaEntry,
-    base: Partial<GasConfigTableEntry> = {},
-  ): GasConfigTableEntry {
-    const entry: GasConfigTableEntry = {
-      ...base,
-      key,
-      value,
-      label: meta.label,
-      required: meta.required,
-      type: meta.type,
+  read(): GasConfigSnapshot {
+    this._cache ??= this._snapshot(this._readStored());
+
+    return {
+      values: { ...this._cache.values },
+      version: this._cache.version,
+      invalid: [...this._cache.invalid],
+      rejected: { ...this._cache.rejected },
     };
-
-    if (meta.description !== undefined) entry.description = meta.description;
-    if (meta.example !== undefined) entry.example = meta.example;
-
-    return entry;
   }
 
   /**
-   * Load persisted configuration entries from storage.
+   * Applies a save under the script lock: every change is validated before
+   * any is written.
+   *
+   * 1. Re-reads the properties, ignoring the cache.
+   * 2. A `saveId` equal to the last saved one replays that save's success.
+   * 3. A `version` other than the stored one is a conflict.
+   * 4. Every change must pass `validateChange`.
+   * 5. Only the changed keys, the new version and `saveId` are written in one
+   *    `setProperties` call. A `null` change stores JSON `null`, read as unset.
+   *
+   * Throws a validation error for a malformed request or an unknown key. If a
+   * write throws, the cache is left as it was.
    */
-  load(): GasConfigData {
-    const table = this._loadTable();
+  save(
+    request: GasConfigSaveRequest,
+    validateChange: GasConfigChangeValidator,
+  ): GasConfigSaveOutcome {
+    const changes = this._parseChanges(request);
 
-    const entries = table.find();
+    return this._lockService.withLock(
+      'script',
+      () => {
+        const stored = this._readStored();
+        const current = this._snapshot(stored);
 
-    const data: GasConfigData = {};
+        if (stored[_GAS_CONFIG_SAVE_ID_PROPERTY] === request.saveId) {
+          return {
+            ok: true,
+            values: current.values,
+            version: current.version,
+            changed: [],
+          };
+        }
 
-    entries.forEach((entry) => {
-      const { key, value } = entry;
+        if (request.version !== current.version) {
+          return { ok: false, reason: 'conflict', version: current.version };
+        }
 
-      data[key] = value;
-    });
+        const errors: Record<string, string> = {};
+        for (const [key, value] of Object.entries(changes)) {
+          const message = validateChange(key, value);
+          if (message) errors[key] = message;
+        }
+        if (Object.keys(errors).length > 0) {
+          return { ok: false, reason: 'invalid', errors };
+        }
 
-    return data;
-  }
+        const writes: Record<string, string> = {};
+        for (const [key, value] of Object.entries(changes)) {
+          const property = _GAS_CONFIG_PROPERTY_PREFIX + key;
+          const isStored = property in stored;
 
-  save(data: GasConfigData): void {
-    const table = this._loadTable();
+          if (value === null) {
+            // A cleared value is stored as JSON null, which reads as unset,
+            // so the whole save stays one atomic write.
+            if (isStored && stored[property] !== 'null')
+              writes[property] = 'null';
+          } else if (
+            !isStored ||
+            current.invalid.includes(key) ||
+            current.values[key] !== value
+          ) {
+            writes[property] = JSON.stringify(value);
+          }
+        }
 
-    const existingEntries = table.find();
+        if (Object.keys(writes).length === 0) {
+          return {
+            ok: true,
+            values: current.values,
+            version: current.version,
+            changed: [],
+          };
+        }
 
-    const existingEntriesMap = new Map(
-      existingEntries.map((entry) => [entry.key, entry]),
+        const version = Utilities.getUuid();
+        writes[_GAS_CONFIG_VERSION_PROPERTY] = version;
+        writes[_GAS_CONFIG_SAVE_ID_PROPERTY] = request.saveId;
+
+        // One atomic write: if it throws, neither the values nor the version
+        // changed, so a retry with the same saveId applies instead of replaying.
+        this._getProperties().setProperties(writes, false);
+
+        const next = { ...stored, ...writes };
+        this._cache = this._snapshot(next);
+
+        const changed: GasConfigChange[] = [];
+        for (const key of Object.keys(changes)) {
+          const from = current.values[key] as GasConfigValue;
+          const to = this._cache.values[key] as GasConfigValue;
+          if (from !== to) changed.push({ key, from, to });
+        }
+
+        return {
+          ok: true,
+          values: { ...this._cache.values },
+          version,
+          changed,
+        };
+      },
+      { timeoutMs: this._lockTimeoutMs },
     );
-
-    const updates: GasConfigTableEntry[] = [];
-    const inserts: GasConfigTableEntryInsert[] = [];
-
-    Object.entries(data).forEach(([key, value]) => {
-      const existingEntry = existingEntriesMap.get(key);
-
-      if (existingEntry) {
-        existingEntry.value = value;
-
-        updates.push(existingEntry);
-        return;
-      }
-
-      inserts.push({ key, value });
-    });
-
-    if (updates.length) {
-      table.updateMany(updates);
-    }
-
-    if (inserts.length) {
-      table.insertMany(inserts);
-    }
   }
 
   /**
-   * Synchronize schema entries from the config schema with persistent storage.
+   * Validates the request shape and returns its changes, with empty values
+   * normalised to `null` (booleans excepted).
    */
-  syncSchema(schema: GasConfigSchema): void {
-    const table = this._loadTable();
-
-    const existingEntries = table.find();
-
-    const existingEntriesMap = new Map<string, GasConfigTableEntry>();
-    for (const entry of existingEntries) {
-      existingEntriesMap.set(entry.key, entry);
+  private _parseChanges(
+    request: GasConfigSaveRequest,
+  ): Record<string, GasConfigValue> {
+    if (
+      !request ||
+      typeof request !== 'object' ||
+      !request.changes ||
+      typeof request.changes !== 'object' ||
+      Array.isArray(request.changes)
+    ) {
+      throw _GasConfigErrors.validation(
+        '[GasConfig] Invalid save request: expected an object with "changes".',
+      );
+    }
+    if (typeof request.version !== 'string') {
+      throw _GasConfigErrors.validation(
+        '[GasConfig] Invalid save request: "version" must be a string.',
+      );
+    }
+    if (typeof request.saveId !== 'string' || request.saveId === '') {
+      throw _GasConfigErrors.validation(
+        '[GasConfig] Invalid save request: "saveId" must be a non-empty string.',
+      );
     }
 
-    const updates: GasConfigTableEntry[] = [];
-    const inserts: GasConfigTableEntry[] = [];
+    const changes: Record<string, GasConfigValue> = {};
+    for (const [key, value] of Object.entries(request.changes)) {
+      if (!this._fields.has(key)) {
+        throw _GasConfigErrors.validation(
+          `[GasConfig] Unknown config key: ${key}`,
+          { key },
+        );
+      }
+      changes[key] =
+        (value === undefined || value === '') &&
+        this._fields.get(key)?.type !== 'boolean'
+          ? null
+          : (value as GasConfigValue);
+    }
+    return changes;
+  }
 
-    Object.entries(schema).forEach(([key, meta]) => {
-      const existingEntry = existingEntriesMap.get(key);
+  /** Resolves Script Properties on first use, never at construction. */
+  private _getProperties(): GoogleAppsScript.Properties.Properties {
+    this._properties ??= PropertiesService.getScriptProperties();
+    return this._properties;
+  }
 
-      if (existingEntry) {
-        const value =
-          existingEntry.value !== null &&
-          existingEntry.value !== undefined &&
-          existingEntry.value !== ''
-            ? existingEntry.value
-            : meta.default;
+  private _readStored(): Record<string, string> {
+    return this._getProperties().getProperties();
+  }
 
-        updates.push(this._buildTableEntry(key, value, meta, existingEntry));
-        return;
+  /** Decodes the stored properties into the effective value of every key. */
+  private _snapshot(
+    stored: Readonly<Record<string, string>>,
+  ): GasConfigSnapshot {
+    const values: Record<string, GasConfigValue> = {};
+    const invalid: string[] = [];
+    const rejected: Record<string, GasConfigValue> = {};
+
+    for (const field of this._fields.values()) {
+      values[field.key] = field.default;
+
+      const raw = stored[_GAS_CONFIG_PROPERTY_PREFIX + field.key];
+      if (raw === undefined) continue;
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        invalid.push(field.key);
+        rejected[field.key] = raw;
+        continue;
       }
 
-      inserts.push(this._buildTableEntry(key, meta.default, meta));
-    });
-
-    if (updates.length) {
-      table.updateMany(updates);
+      if (parsed === null || parsed === '') continue;
+      if (_GasConfigStorage.check(field, parsed) !== null) {
+        invalid.push(field.key);
+        rejected[field.key] = _GasConfigStorage.isValue(parsed) ? parsed : null;
+        continue;
+      }
+      values[field.key] = parsed as GasConfigValue;
     }
 
-    if (inserts.length) {
-      table.insertMany(inserts);
-    }
+    return {
+      values,
+      version: stored[_GAS_CONFIG_VERSION_PROPERTY] ?? '',
+      invalid,
+      rejected,
+    };
+  }
+
+  /** Whether a parsed JSON value is a `GasConfigValue`. */
+  private static isValue(value: unknown): value is GasConfigValue {
+    return (
+      typeof value === 'string' ||
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    );
   }
 }

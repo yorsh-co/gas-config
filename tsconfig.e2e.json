@@ -1,0 +1,12 @@
+{
+  "extends": "gas-dev-config/tsconfig/web.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rootDir": ".",
+    "noEmit": true,
+    "declaration": false,
+    "types": ["node"]
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "src/shared/**/*.ts"]
+}

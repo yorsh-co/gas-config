@@ -4,3 +4,10 @@ node_modules/
 # dist
 dist/
 .worktrees/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Manual fixture build
+.manual-config/
