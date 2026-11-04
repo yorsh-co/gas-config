@@ -2,6 +2,14 @@
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- README shows screenshots of the settings UI: dialog, sidebar, web page, theming, validation and read-only states
+
+---
+
 ## [2.0.2] - 2026-11-04
 
 ### Changed
