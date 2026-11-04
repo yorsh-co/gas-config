@@ -2,6 +2,14 @@
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- The peer declarations' `@version` header now matches the package version (2.0.1). The vendored `gas-lock`, `gas-error` and `gas-logger` peer declarations are re-copied from gas-lock 1.2.2, gas-error 1.2.3 and gas-logger 2.0.2
+
+---
+
 ## [2.0.1] - 2026-11-04
 
 ### Changed
