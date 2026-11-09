@@ -71,7 +71,7 @@ function gradeAll() {
 
 ### Peer Dependencies
 
-`gas-config` uses the following as globals at runtime when they are loaded. All are optional: each is a separate gas-\* library, bundled alongside `gas-config` by gas-dev-bundle, and every use is guarded with a fallback.
+`gas-config` uses the following as globals at runtime when they are loaded. All are optional: each is a separate gas-\* library, bundled alongside `gas-config` by gasdev bundle, and every use is guarded with a fallback.
 
 | Package                                                | Adds                                                                                                                                                    | Without it                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -119,43 +119,45 @@ It is recommended to use `gas-config` together with [Google's `clasp` CLI](https
 
 #### 1. Add the library to your Apps Script project
 
-##### Several gas-\* libraries: gas-dev-bundle
+##### Several gas-\* libraries: gasdev bundle
 
-[gas-dev-bundle](https://github.com/yorsh-co/gas-dev-bundle) resolves version ranges against the libraries' release tags and writes them into one script, in dependency order.
+[gasdev bundle](https://github.com/yorsh-co/gasdev#bundle) resolves version ranges against the libraries' release tags and writes them into one script, in dependency order.
 
 ```bash
-npm install -D github:yorsh-co/gas-dev-bundle#semver:^2.0.0
+npm install -D github:yorsh-co/gasdev#semver:^3.0.0-beta.1
 ```
 
 List the libraries in your `package.json`:
 
 ```json
 {
-  "gasDevBundle": {
-    "outFile": "src/lib/gas-libraries.js",
-    "libraries": {
-      "gas-config": "^2.0.0",
-      "gas-lock": "^1.2.0",
-      "gas-error": "^1.2.2",
-      "gas-logger": "^2.0.1"
+  "gasdev": {
+    "bundle": {
+      "outFile": "src/lib/gas-libraries.js",
+      "libraries": {
+        "gas-config": "^2.0.0",
+        "gas-lock": "^1.2.0",
+        "gas-error": "^1.2.2",
+        "gas-logger": "^2.0.1"
+      }
     }
   }
 }
 ```
 
 ```bash
-npx gas-dev-bundle
+npx gasdev bundle
 ```
 
 - Commit the generated file. Its header records each library's version and commit SHA.
 - Re-run the command after changing a range to upgrade.
-- Listing `gas-lock`, `gas-error` or `gas-logger` bundles it ahead of `gas-config`, which uses them when present. gas-dev-bundle treats peers as optional and never adds one on its own, so list the ones you want (P6).
+- Listing `gas-lock`, `gas-error` or `gas-logger` bundles it ahead of `gas-config`, which uses them when present. gasdev bundle treats peers as optional and never adds one on its own, so list the ones you want (P6).
 
-See the [gas-dev-bundle README](https://github.com/yorsh-co/gas-dev-bundle) for configuration details.
+See the [gasdev README](https://github.com/yorsh-co/gasdev#bundle) for configuration details.
 
 ##### This library only: git subtree
 
-The library also ships on its own `dist` branch. Without gas-dev-bundle, add it and each peer you use with git subtree:
+The library also ships on its own `dist` branch. Without gasdev bundle, add it and each peer you use with git subtree:
 
 ```bash
 git subtree add \
@@ -238,7 +240,7 @@ A `const config = new GasConfig(...)` at the top level of your file runs when th
 ReferenceError: GasConfig is not defined
 ```
 
-With gas-dev-bundle the library and its peers are one file, so a single [`filePushOrder`](https://github.com/google/clasp#filepushorder-optional) entry in `.clasp.json` is enough:
+With gasdev bundle the library and its peers are one file, so a single [`filePushOrder`](https://github.com/google/clasp#filepushorder-optional) entry in `.clasp.json` is enough:
 
 ```json
 {
@@ -632,8 +634,8 @@ These are Apps Script constraints. They are documented, not fixed.
 | P2  | `google.script.run` reaches top-level function declarations only, and not names ending in `_`. `GasConfigRpc` is a function declaration for that reason; an alias such as `const GasConfigRpc = ...` is not reachable. The same goes for menu handlers. |
 | P3  | The dialog and sidebar need a container UI, which `clasp run` does not have. `npm run test:gas` cannot exercise them; the [`manual/`](https://github.com/yorsh-co/gas-config/tree/main/manual) fixture does.                                            |
 | P4  | `HtmlService` drops a viewport `<meta>` written in the page. `createHtmlOutput` adds it with `addMetaTag`; any page you build around it must do the same to be usable on a phone.                                                                       |
-| P5  | The push-time parser rejects ES2021 syntax and `async`/`await`, so the library is compiled to ES2020 and has no async functions. The `gas` ESLint preset of `gas-dev-config` forbids them in Apps Script sources.                                       |
-| P6  | Peers are optional by definition, and gas-dev-bundle never adds one on its own. A project bundled without a peer does not fail; it behaves as described in [Peer Dependencies](#peer-dependencies), which shows only at runtime.                        |
+| P5  | The push-time parser rejects ES2021 syntax and `async`/`await`, so the library is compiled to ES2020 and has no async functions. The `gas` ESLint preset of `gasdev` forbids them in Apps Script sources.                                               |
+| P6  | Peers are optional by definition, and gasdev bundle never adds one on its own. A project bundled without a peer does not fail; it behaves as described in [Peer Dependencies](#peer-dependencies), which shows only at runtime.                         |
 | P7  | Script Properties allow 9 KB per value, 500 KB in total, and daily read and write quotas.                                                                                                                                                               |
 | P8  | The host controls the size of a sidebar (a fixed width) and may cap a dialog to the window; `width` and `height` are requests.                                                                                                                          |
 | P9  | The page loads Roboto from Google Fonts. Where that is blocked, it falls back to the system font.                                                                                                                                                       |
@@ -653,7 +655,7 @@ Observed on deployed projects (`manual/` fixture):
 The source is TypeScript, compiled to ES2020 because Apps Script's push-time parser rejects newer syntax.
 
 ```bash
-npm run check          # format, lint, typecheck (including typecheck:peer), unit tests, gas-dev-config check
+npm run check          # format, lint, typecheck (including typecheck:peer), unit tests, gasdev check
 npm run dev            # the UI in a browser against a mock server
 npm run test:e2e       # Playwright flows against the harness
 npm run test:gas       # Apps Script tests on a dedicated project (GAS_TEST_SCRIPT_ID)
@@ -668,17 +670,17 @@ npm run manual:build   # the fixture for the manual checks in Sheets, Docs, Slid
 
 ### Editing the UI
 
-The UI is written as `src/web/gas-config.ui.html`, `.css` and TypeScript. The library ships it as one string constant, generated into `src/generated/gas-config.ui.html.ts` by `gas-dev-config html`. After changing anything in `src/web/`, run:
+The UI is written as `src/web/gas-config.ui.html`, `.css` and TypeScript. The library ships it as one string constant, generated into `src/generated/gas-config.ui.html.ts` by `gasdev html`. After changing anything in `src/web/`, run:
 
 ```bash
 npm run build:frontend
 ```
 
-The generated file is committed and never edited by hand. `gas-dev-config check`, part of `npm run check`, fails when it is stale.
+The generated file is committed and never edited by hand. `gasdev check`, part of `npm run check`, fails when it is stale.
 
 ## Peer Type Declarations
 
-Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts` at every `vX.Y.Z` tag. A consuming package lists `"gas-config": "<range>"` under `gasDevConfig.peers` in its `package.json` and runs `gas-dev-config peers sync` (gas-dev-config 1.10.0 or later). It writes `src/internal/gas-config.peer.types.d.ts` from the highest tag that satisfies the range, and `gas-dev-config peers sync --check` reports a stale copy. Do not edit the copy.
+Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts` at every `vX.Y.Z` tag. A consuming package lists `"gas-config": "<range>"` under `gasdev.peers` in its `package.json` and runs `gasdev peers sync` (gasdev 3.0 or later). It writes `src/internal/gas-config.peer.types.d.ts` from the highest tag that satisfies the range, and `gasdev peers sync --check` reports a stale copy. Do not edit the copy.
 
 The file is type-checked standalone by `npm run typecheck:peer`, and a test compares it with `src/`, so a change to the public surface that is not mirrored there fails `npm run check`.
 

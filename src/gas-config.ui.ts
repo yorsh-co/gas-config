@@ -152,7 +152,7 @@ const _GasConfigUi = Object.freeze({
     const at = html.indexOf(_GAS_CONFIG_BOOTSTRAP_ELEMENT);
     if (at === -1) {
       throw new Error(
-        '[GasConfig] The settings page has no bootstrap element. The generated page does not match the library: rebuild it with "gas-dev-config html".',
+        '[GasConfig] The settings page has no bootstrap element. The generated page does not match the library: rebuild it with "gasdev html".',
       );
     }
 
