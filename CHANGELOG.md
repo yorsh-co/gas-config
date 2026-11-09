@@ -7,6 +7,10 @@
 ### Changed
 
 - README installs `gas-dev-bundle` `^2.0.0` (was `^1.1.1`)
+- Migrated tooling from `gas-dev-config`, `gas-dev-bundle` and `gas-dev-release` 2.x to `gasdev` `^3.0.0-beta.1`
+- Node engine floor raised to `^22.15.0`
+- `package.json` configuration moved under the `gasdev` key, with `release` nested
+- README, docs, the peer types comment and an error message use the `gasdev` names
 
 ---
 
