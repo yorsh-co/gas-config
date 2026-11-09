@@ -11,3 +11,7 @@ playwright-report/
 
 # Manual fixture build
 .manual-config/
+.claude/worktrees/
+.claude/plans/
+.claude/handoff/
+.env

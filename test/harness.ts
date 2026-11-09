@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createGasLoader, loadOrderFiles } from 'gas-dev-config/test';
+import { createGasLoader, loadOrderFiles } from 'gasdev/test';
 import { createMocks, type MockOptions, type Mocks } from './mocks';
 
 /** Repository root, against which `SOURCE_FILES` resolve. */
