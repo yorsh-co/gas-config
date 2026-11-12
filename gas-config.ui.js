@@ -61,21 +61,35 @@ const _GasConfigUi = Object.freeze({
     if (snapshot.invalid.length > 0) state.invalid = [...snapshot.invalid];
     return state;
   },
+  /**
+   * What a user without read access sees: the title, the appName and the
+   * logo. Nothing that describes the settings.
+   */
+  deniedState(config) {
+    return {
+      title: config.title,
+      ...(config.appName !== undefined && { appName: config.appName }),
+      ...(config.brand.logoUrl !== undefined && {
+        brand: { logoUrl: config.brand.logoUrl },
+      }),
+    };
+  },
   /** Builds the page with its bootstrap embedded. */
   render(config, surface) {
     const html = _GAS_CONFIG_UI_HTML;
     const at = html.indexOf(_GAS_CONFIG_BOOTSTRAP_ELEMENT);
     if (at === -1) {
       throw new Error(
-        '[GasConfig] The settings page has no bootstrap element. The generated page does not match the library: rebuild it with "gas-dev-config html".',
+        '[GasConfig] The settings page has no bootstrap element. The generated page does not match the library: rebuild it with "gasdev html".',
       );
     }
     const bootstrap = {
       surface,
       theme: config.theme,
       brand: { ...config.brand },
-      state: _GasConfigUi.buildState(config),
     };
+    if (config._canRead()) bootstrap.state = _GasConfigUi.buildState(config);
+    else bootstrap.denied = _GasConfigUi.deniedState(config);
     // Split rather than String.replace, whose "$" patterns would corrupt
     // stored values containing them.
     return HtmlService.createHtmlOutput(
@@ -187,6 +201,7 @@ const _GasConfigUi = Object.freeze({
   dispatch(config, method, payload) {
     switch (method) {
       case 'getSettings':
+        config._assertCanRead();
         return _GasConfigUi.buildState(config);
       case 'saveSettings':
         return _GasConfigUi.save(config, payload);

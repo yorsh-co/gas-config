@@ -51,6 +51,10 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   brand: GasConfigBrand;
   /** Normalised emails allowed to change the settings; empty means nobody. */
   editors: string[];
+  /** Whether reads are limited to `editors` and `readers`; true whenever `readers` was given. */
+  restrictReads: boolean;
+  /** Normalised emails allowed to read besides `editors`; `[]` when omitted. */
+  readers: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
   lockTimeoutMs: number;
@@ -83,6 +87,18 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
    * @internal
    */
   _canEdit(): boolean;
+  /**
+   * Whether the signed-in user may read the settings. Reads Session only when
+   * reads are restricted.
+   * @internal
+   */
+  _canRead(): boolean;
+  /**
+   * Throws a 401 unless the signed-in user may read the settings. Reads
+   * Session only when reads are restricted.
+   * @internal
+   */
+  _assertCanRead(): void;
   /**
    * The signed-in user's email for change logging, or null when unidentified.
    * @internal
@@ -118,10 +134,15 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   /** Validate the brand overrides, copying them. */
   private _resolveBrand;
   /**
-   * Validate the editors list: trimmed, lowercased and deduplicated. Omitted
-   * or empty means nobody can edit.
+   * Validate an email list: trimmed, lowercased and deduplicated. Omitted
+   * means an empty list.
    */
-  private _resolveEditors;
+  private _resolveEmails;
+  /**
+   * Resolve whether reads are restricted: `readers` restricts by itself, and
+   * `restrictReads: false` contradicts it.
+   */
+  private _resolveRestrictReads;
   /**
    * Validate every field of the schema and convert it to its client form.
    * Pure: nothing outside the schema is consulted. Server-only `validate`

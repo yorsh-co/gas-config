@@ -131,6 +131,17 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   groups?: GasConfigGroup[];
   /** Emails allowed to change the settings. Omitted or empty means nobody. */
   editors?: string[];
+  /**
+   * Emails allowed to read the settings, besides `editors`. Setting it
+   * restricts reads; `undefined` leaves reads open to everyone, `[]` limits
+   * them to `editors`.
+   */
+  readers?: string[];
+  /**
+   * Limits reads to `editors` (and `readers`). Omitted or `false` leaves reads
+   * open unless `readers` is set; `false` with `readers` throws.
+   */
+  restrictReads?: boolean;
   /** @default 'Settings' */
   title?: string;
   /** Names the project above the page title and in the tab. Shown on the page surface only. */

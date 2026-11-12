@@ -106,6 +106,11 @@ declare const _GasConfigUi: Readonly<{
    * are listed in `invalid`.
    */
   buildState(config: GasConfig): GasConfigSettingsState;
+  /**
+   * What a user without read access sees: the title, the appName and the
+   * logo. Nothing that describes the settings.
+   */
+  deniedState(config: GasConfig): GasConfigDeniedState;
   /** Builds the page with its bootstrap embedded. */
   render(
     config: GasConfig,

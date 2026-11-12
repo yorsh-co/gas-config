@@ -115,7 +115,12 @@ class GasConfig {
     this.groups = this._resolveGroups(options.groups);
     this.theme = this._resolveTheme(options.theme);
     this.brand = this._resolveBrand(options.brand);
-    this.editors = this._resolveEditors(options.editors);
+    this.editors = this._resolveEmails('editors', options.editors);
+    this.readers = this._resolveEmails('readers', options.readers);
+    this.restrictReads = this._resolveRestrictReads(
+      options.restrictReads,
+      options.readers,
+    );
     const validators = new Map();
     this._clientFields = this._resolveSchema(
       options.schema,
@@ -129,7 +134,11 @@ class GasConfig {
     this.lockService = this._resolveLockService(options.lockService);
     this.lockTimeoutMs = this._resolveLockTimeoutMs(options.lockTimeoutMs);
     this.logger = this._resolveLogger(options.logger);
-    this._access = new _GasConfigAccess(this.editors);
+    this._access = new _GasConfigAccess(
+      this.editors,
+      this.readers,
+      this.restrictReads,
+    );
     this._storage = new _GasConfigStorage(
       this._clientFields,
       this.lockService,
@@ -167,6 +176,22 @@ class GasConfig {
    */
   _canEdit() {
     return this._access.canEdit();
+  }
+  /**
+   * Whether the signed-in user may read the settings. Reads Session only when
+   * reads are restricted.
+   * @internal
+   */
+  _canRead() {
+    return this._access.canRead();
+  }
+  /**
+   * Throws a 401 unless the signed-in user may read the settings. Reads
+   * Session only when reads are restricted.
+   * @internal
+   */
+  _assertCanRead() {
+    this._access.assertCanRead();
   }
   /**
    * The signed-in user's email for change logging, or null when unidentified.
@@ -313,29 +338,46 @@ class GasConfig {
     return resolved;
   }
   /**
-   * Validate the editors list: trimmed, lowercased and deduplicated. Omitted
-   * or empty means nobody can edit.
+   * Validate an email list: trimmed, lowercased and deduplicated. Omitted
+   * means an empty list.
    */
-  _resolveEditors(editors) {
-    if (editors === undefined) return [];
+  _resolveEmails(name, emails) {
+    if (emails === undefined) return [];
     if (
-      !Array.isArray(editors) ||
-      editors.some((email) => typeof email !== 'string' || email.trim() === '')
+      !Array.isArray(emails) ||
+      emails.some((email) => typeof email !== 'string' || email.trim() === '')
     ) {
       throw new Error(
-        '[GasConfig] Invalid "editors": expected an array of non-empty email strings.',
+        `[GasConfig] Invalid "${name}": expected an array of non-empty email strings.`,
       );
     }
-    const normalised = editors.map((email) => email.trim().toLowerCase());
+    const normalised = emails.map((email) => email.trim().toLowerCase());
     const invalid = normalised.find(
       (email) => !_GAS_CONFIG_EMAIL_PATTERN.test(email),
     );
     if (invalid !== undefined) {
       throw new Error(
-        `[GasConfig] Invalid "editors": "${invalid}" is not an email address.`,
+        `[GasConfig] Invalid "${name}": "${invalid}" is not an email address.`,
       );
     }
     return [...new Set(normalised)];
+  }
+  /**
+   * Resolve whether reads are restricted: `readers` restricts by itself, and
+   * `restrictReads: false` contradicts it.
+   */
+  _resolveRestrictReads(restrictReads, readers) {
+    if (restrictReads !== undefined && typeof restrictReads !== 'boolean') {
+      throw new Error(
+        '[GasConfig] Invalid "restrictReads": expected a boolean.',
+      );
+    }
+    if (restrictReads === false && readers !== undefined) {
+      throw new Error(
+        '[GasConfig] Invalid "restrictReads": false contradicts "readers"; omit one.',
+      );
+    }
+    return readers !== undefined || restrictReads === true;
   }
   /**
    * Validate every field of the schema and convert it to its client form.

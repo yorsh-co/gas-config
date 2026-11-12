@@ -71,7 +71,7 @@ function gradeAll() {
 
 ### Peer Dependencies
 
-`gas-config` uses the following as globals at runtime when they are loaded. All are optional: each is a separate gas-\* library, bundled alongside `gas-config` by gas-dev-bundle, and every use is guarded with a fallback.
+`gas-config` uses the following as globals at runtime when they are loaded. All are optional: each is a separate gas-\* library, bundled alongside `gas-config` by gasdev bundle, and every use is guarded with a fallback.
 
 | Package                                                | Adds                                                                                                                                                    | Without it                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -81,10 +81,10 @@ function gradeAll() {
 
 ### Scopes
 
-| Scope                                                 | Requested because                                                                         |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `https://www.googleapis.com/auth/userinfo.email`      | The signed-in user is checked against `editors` with `Session.getActiveUser().getEmail()` |
-| `https://www.googleapis.com/auth/script.container.ui` | Your code opens the dialog or sidebar through the host's `getUi()`                        |
+| Scope                                                 | Requested because                                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `https://www.googleapis.com/auth/userinfo.email`      | The signed-in user is checked against `editors` and `readers` with `Session.getActiveUser().getEmail()` |
+| `https://www.googleapis.com/auth/script.container.ui` | Your code opens the dialog or sidebar through the host's `getUi()`                                      |
 
 Apps Script detects both from the code, so you do not list them in `appsscript.json`. `gas-config` never names a container service (`SpreadsheetApp`, `DocumentApp`, `SlidesApp` or `FormApp`): Apps Script derives scopes by scanning the code for service names, and one reference would ask a Docs project for access to Sheets. Instead you pass your own `getUi()` to [`showDialog`](#show-the-settings-in-a-dialog) and [`showSidebar`](#show-the-settings-in-a-sidebar), so the project is asked for the scopes of the services it uses and no more. Your own `getUi()` call names the host service, which adds that host's scope; `/** @OnlyCurrentDoc */` narrows it to the `…currentonly` scope. A project that only serves the settings as a web page never calls `getUi()` and is not asked for `script.container.ui`.
 
@@ -92,9 +92,9 @@ Apps Script detects both from the code, so you do not list them in `appsscript.j
 
 In a container-bound script (Sheets, Docs, Slides or Forms) there is nothing to deploy: the dialog and sidebar run as the user who opens them.
 
-To serve the settings as a web page from a standalone script, deploy a **Web App** (Apps Script editor → Deploy → New deployment → Web app) whose `doGet` returns `config.createHtmlOutput()`. Deploy it with **Execute as: User accessing the web app**, with the `userinfo.email` scope granted. Restrict **Who has access** to the people who should see the settings: users who are not editors still see the values, read-only.
+To serve the settings as a web page from a standalone script, deploy a **Web App** (Apps Script editor → Deploy → New deployment → Web app) whose `doGet` returns `config.createHtmlOutput()`. Deploy it with **Execute as: User accessing the web app**, with the `userinfo.email` scope granted. Restrict **Who has access** to the people who should see the settings: users who are not editors still see the values, read-only, unless you [restrict reads](#reading).
 
-Under **Execute as: Me**, consumer accounts and callers outside your domain have a blank email. They cannot be identified, so the page is read-only for them and a save is refused with a 401.
+Under **Execute as: Me**, consumer accounts and callers outside your domain have a blank email. They cannot be identified, so the page is read-only for them and a save is refused with a 401. With [restricted reads](#reading) they are denied the settings altogether.
 
 ### Example `appsscript.json`
 
@@ -119,43 +119,45 @@ It is recommended to use `gas-config` together with [Google's `clasp` CLI](https
 
 #### 1. Add the library to your Apps Script project
 
-##### Several gas-\* libraries: gas-dev-bundle
+##### Several gas-\* libraries: gasdev bundle
 
-[gas-dev-bundle](https://github.com/yorsh-co/gas-dev-bundle) resolves version ranges against the libraries' release tags and writes them into one script, in dependency order.
+[gasdev bundle](https://github.com/yorsh-co/gasdev#bundle) resolves version ranges against the libraries' release tags and writes them into one script, in dependency order.
 
 ```bash
-npm install -D github:yorsh-co/gas-dev-bundle#semver:^1.1.1
+npm install -D github:yorsh-co/gasdev#semver:^3.0.0
 ```
 
 List the libraries in your `package.json`:
 
 ```json
 {
-  "gasDevBundle": {
-    "outFile": "src/lib/gas-libraries.js",
-    "libraries": {
-      "gas-config": "^2.0.0",
-      "gas-lock": "^1.2.0",
-      "gas-error": "^1.2.2",
-      "gas-logger": "^2.0.1"
+  "gasdev": {
+    "bundle": {
+      "outFile": "src/lib/gas-libraries.js",
+      "libraries": {
+        "gas-config": "^2.0.0",
+        "gas-lock": "^1.2.0",
+        "gas-error": "^1.2.2",
+        "gas-logger": "^2.0.1"
+      }
     }
   }
 }
 ```
 
 ```bash
-npx gas-dev-bundle
+npx gasdev bundle
 ```
 
 - Commit the generated file. Its header records each library's version and commit SHA.
 - Re-run the command after changing a range to upgrade.
-- Listing `gas-lock`, `gas-error` or `gas-logger` bundles it ahead of `gas-config`, which uses them when present. gas-dev-bundle treats peers as optional and never adds one on its own, so list the ones you want (P6).
+- Listing `gas-lock`, `gas-error` or `gas-logger` bundles it ahead of `gas-config`, which uses them when present. gasdev bundle treats peers as optional and never adds one on its own, so list the ones you want (P6).
 
-See the [gas-dev-bundle README](https://github.com/yorsh-co/gas-dev-bundle) for configuration details.
+See the [gasdev README](https://github.com/yorsh-co/gasdev#bundle) for configuration details.
 
 ##### This library only: git subtree
 
-The library also ships on its own `dist` branch. Without gas-dev-bundle, add it and each peer you use with git subtree:
+The library also ships on its own `dist` branch. Without gasdev bundle, add it and each peer you use with git subtree:
 
 ```bash
 git subtree add \
@@ -238,7 +240,7 @@ A `const config = new GasConfig(...)` at the top level of your file runs when th
 ReferenceError: GasConfig is not defined
 ```
 
-With gas-dev-bundle the library and its peers are one file, so a single [`filePushOrder`](https://github.com/google/clasp#filepushorder-optional) entry in `.clasp.json` is enough:
+With gasdev bundle the library and its peers are one file, so a single [`filePushOrder`](https://github.com/google/clasp#filepushorder-optional) entry in `.clasp.json` is enough:
 
 ```json
 {
@@ -335,19 +337,21 @@ const config = new GasConfig({
 
 The instance must live at global scope because the settings UI calls back into your project through `GasConfigRpc`, a separate execution that starts from a blank global scope. `GasConfigRpc` routes to the most recently constructed `GasConfig`, so a project has one settings UI. The constructor validates the schema and options and throws a `[GasConfig]` error for a mistake, but touches no Apps Script service, so a global `new GasConfig(...)` costs nothing until first use.
 
-| Option          | Type                          | Description                                                                                          |
-| --------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `schema`        | `GasConfigSchema`             | Required. The fields, keyed by config key. See [Schema reference](#schema-reference)                 |
-| `groups`        | `GasConfigGroup[]`            | Sections of the UI, as `{ id, label, description? }`. A field joins one with `group`. Ids are unique |
-| `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted or empty means nobody. See [Access](#access)          |
-| `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`            |
-| `description`   | `string`                      | Text under the heading                                                                               |
-| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`      |
-| `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                       |
-| `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                             |
-| `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                |
-| `lockService`   | `{ withLock }`                | Default: `GasLock` when loaded, else `LockService` directly                                          |
-| `lockTimeoutMs` | `number`                      | How long a save waits for the script lock. Default `30000`                                           |
+| Option          | Type                          | Description                                                                                           |
+| --------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `schema`        | `GasConfigSchema`             | Required. The fields, keyed by config key. See [Schema reference](#schema-reference)                  |
+| `groups`        | `GasConfigGroup[]`            | Sections of the UI, as `{ id, label, description? }`. A field joins one with `group`. Ids are unique  |
+| `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted or empty means nobody. See [Access](#access)           |
+| `restrictReads` | `boolean`                     | `true` limits reading to `editors` and `readers`. Default: everyone can read. See [Reading](#reading) |
+| `readers`       | `string[]`                    | Emails allowed to read, besides `editors`. Setting it restricts reads. See [Reading](#reading)        |
+| `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`             |
+| `description`   | `string`                      | Text under the heading                                                                                |
+| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`       |
+| `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                        |
+| `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                              |
+| `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                 |
+| `lockService`   | `{ withLock }`                | Default: `GasLock` when loaded, else `LockService` directly                                           |
+| `lockTimeoutMs` | `number`                      | How long a save waits for the script lock. Default `30000`                                            |
 
 A config key starts with a letter, followed by letters, digits, `_`, `.` or `-`.
 
@@ -431,7 +435,7 @@ const all = config.getAll(); // { orgName: string | null, passMark: number | nul
 - An unknown key throws `[GasConfig] Unknown config key: <key>`, and a TypeScript project sees it as a type error.
 - `getAll()` returns a fresh object on each call.
 - Properties are read once per instance and then served from memory, so a value saved in another execution shows up in the next execution.
-- Reads are never gated by `editors`.
+- `get()` and `getAll()` are never gated, by `editors` or by [`readers`](#reading).
 
 There is no setter: values are written by the settings UI, through a save that validates every change.
 
@@ -523,6 +527,29 @@ Values cross `google.script.run` as JSON, so dates are `'YYYY-MM-DD'` strings, n
 
 > **Warning:**
 > `editors` is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read and change Script Properties directly or run code that does.
+
+### Reading
+
+By default everyone who can open the settings can read them. `restrictReads` and `readers` limit that.
+
+| `restrictReads` | `readers` | Who can read                                      |
+| --------------- | --------- | ------------------------------------------------- |
+| omitted         | omitted   | Everyone. This is the default                     |
+| `false`         | omitted   | Everyone                                          |
+| `true`          | omitted   | `editors` only                                    |
+| omitted         | `[]`      | `editors` only, the same as `restrictReads: true` |
+| omitted, `true` | `[...]`   | `editors` and `readers`                           |
+| `false`         | given     | The constructor throws: the options contradict    |
+
+- Setting `readers` restricts reads by itself, even when it is empty: omitted (`undefined`) means no restriction, `[]` means editors only. `restrictReads: true` alongside it is redundant and allowed.
+- Editors can always read. An email may appear in both lists. `readers` is trimmed, lowercased, deduplicated and checked like `editors`.
+- Once reads are restricted, a user who cannot be identified is denied.
+- A denied user sees only the title, the `appName` and the brand logo, with the message `You do not have access to these settings.` The description, groups, fields, values and version are not sent to the browser.
+- `GasConfigRpc('getSettings')` fails with a 401 for a denied user, before any storage is read: `[GasConfig] Unable to identify the signed-in user` or `[GasConfig] Not authorized`. Neither message contains the email. `saveSettings` is unchanged.
+- `get()` and `getAll()` stay ungated: they run in your own code.
+
+> **Warning:**
+> `readers`, like `editors`, is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read Script Properties directly or run code that does.
 
 ## Storage
 
@@ -620,6 +647,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost) {
 - This bypasses the app's middleware, which is fine: `gas-config` authorizes every call itself.
 - Use the `route` parameter. An anonymous GET with a path after `/exec` never reaches the script (gas-webapp P4).
 - The page's browser code calls `GasConfigRpc` directly through `google.script.run`, not through the router, so it needs no route and no `GasWebApp` browser client.
+- The app's own web app exposes `GasConfigRpc` to its pages, so anyone allowed to open the app can call `getSettings`. Set [`restrictReads`](#reading) to limit who can read the settings.
 - Both libraries want **Execute as: User accessing the web app** and the `userinfo.email` scope.
 
 ## Platform limitations
@@ -632,12 +660,12 @@ These are Apps Script constraints. They are documented, not fixed.
 | P2  | `google.script.run` reaches top-level function declarations only, and not names ending in `_`. `GasConfigRpc` is a function declaration for that reason; an alias such as `const GasConfigRpc = ...` is not reachable. The same goes for menu handlers. |
 | P3  | The dialog and sidebar need a container UI, which `clasp run` does not have. `npm run test:gas` cannot exercise them; the [`manual/`](https://github.com/yorsh-co/gas-config/tree/main/manual) fixture does.                                            |
 | P4  | `HtmlService` drops a viewport `<meta>` written in the page. `createHtmlOutput` adds it with `addMetaTag`; any page you build around it must do the same to be usable on a phone.                                                                       |
-| P5  | The push-time parser rejects ES2021 syntax and `async`/`await`, so the library is compiled to ES2020 and has no async functions. The `gas` ESLint preset of `gas-dev-config` forbids them in Apps Script sources.                                       |
-| P6  | Peers are optional by definition, and gas-dev-bundle never adds one on its own. A project bundled without a peer does not fail; it behaves as described in [Peer Dependencies](#peer-dependencies), which shows only at runtime.                        |
+| P5  | The push-time parser rejects ES2021 syntax and `async`/`await`, so the library is compiled to ES2020 and has no async functions. The `gas` ESLint preset of `gasdev` forbids them in Apps Script sources.                                               |
+| P6  | Peers are optional by definition, and gasdev bundle never adds one on its own. A project bundled without a peer does not fail; it behaves as described in [Peer Dependencies](#peer-dependencies), which shows only at runtime.                         |
 | P7  | Script Properties allow 9 KB per value, 500 KB in total, and daily read and write quotas.                                                                                                                                                               |
 | P8  | The host controls the size of a sidebar (a fixed width) and may cap a dialog to the window; `width` and `height` are requests.                                                                                                                          |
 | P9  | The page loads Roboto from Google Fonts. Where that is blocked, it falls back to the system font.                                                                                                                                                       |
-| P10 | `Session.getActiveUser().getEmail()` is blank for consumer accounts and callers outside your domain when a web app executes as you, so those users cannot be identified and are read-only.                                                              |
+| P10 | `Session.getActiveUser().getEmail()` is blank for consumer accounts and callers outside your domain when a web app executes as you, so those users cannot be identified and are read-only, or denied when [reads are restricted](#reading).             |
 
 ### Platform notes
 
@@ -653,7 +681,7 @@ Observed on deployed projects (`manual/` fixture):
 The source is TypeScript, compiled to ES2020 because Apps Script's push-time parser rejects newer syntax.
 
 ```bash
-npm run check          # format, lint, typecheck (including typecheck:peer), unit tests, gas-dev-config check
+npm run check          # format, lint, typecheck (including typecheck:peer), unit tests, gasdev check
 npm run dev            # the UI in a browser against a mock server
 npm run test:e2e       # Playwright flows against the harness
 npm run test:gas       # Apps Script tests on a dedicated project (GAS_TEST_SCRIPT_ID)
@@ -668,17 +696,17 @@ npm run manual:build   # the fixture for the manual checks in Sheets, Docs, Slid
 
 ### Editing the UI
 
-The UI is written as `src/web/gas-config.ui.html`, `.css` and TypeScript. The library ships it as one string constant, generated into `src/generated/gas-config.ui.html.ts` by `gas-dev-config html`. After changing anything in `src/web/`, run:
+The UI is written as `src/web/gas-config.ui.html`, `.css` and TypeScript. The library ships it as one string constant, generated into `src/generated/gas-config.ui.html.ts` by `gasdev html`. After changing anything in `src/web/`, run:
 
 ```bash
 npm run build:frontend
 ```
 
-The generated file is committed and never edited by hand. `gas-dev-config check`, part of `npm run check`, fails when it is stale.
+The generated file is committed and never edited by hand. `gasdev check`, part of `npm run check`, fails when it is stale.
 
 ## Peer Type Declarations
 
-Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts` at every `vX.Y.Z` tag. A consuming package lists `"gas-config": "<range>"` under `gasDevConfig.peers` in its `package.json` and runs `gas-dev-config peers sync` (gas-dev-config 1.10.0 or later). It writes `src/internal/gas-config.peer.types.d.ts` from the highest tag that satisfies the range, and `gas-dev-config peers sync --check` reports a stale copy. Do not edit the copy.
+Consuming gas-\* libraries can type-check against `GasConfig` without vendoring its source. The canonical declarations live in `peer/gas-config.peer.types.d.ts` at every `vX.Y.Z` tag. A consuming package lists `"gas-config": "<range>"` under `gasdev.peers` in its `package.json` and runs `gasdev peers sync` (gasdev 3.0 or later). It writes `src/internal/gas-config.peer.types.d.ts` from the highest tag that satisfies the range, and `gasdev peers sync --check` reports a stale copy. Do not edit the copy.
 
 The file is type-checked standalone by `npm run typecheck:peer`, and a test compares it with `src/`, so a change to the public surface that is not mirrored there fails `npm run check`.
 

@@ -6,6 +6,25 @@
 
 ---
 
+## [2.1.0] - 2026-11-12
+
+### Added
+
+- `restrictReads` and `readers` options to restrict read access to the configuration
+- `GasConfigRpc('getSettings')` returns 401 for users without read access
+- `render()` shows a denied view with only the title, `appName` and brand logo for users without read access
+- `get()` and `getAll()` are not gated; behaviour is unchanged when both options are omitted
+
+### Changed
+
+- README installs `gasdev` `^3.0.0` (`gasdev bundle`)
+- Migrated tooling from `gas-dev-config`, `gas-dev-bundle` and `gas-dev-release` 2.x to `gasdev` `^3.0.0`
+- Node engine floor raised to `^22.15.0`
+- `package.json` configuration moved under the `gasdev` key, with `release` nested
+- README, docs, the peer types comment and an error message use the `gasdev` names
+
+---
+
 ## [2.0.4] - 2026-11-04
 
 ### Changed

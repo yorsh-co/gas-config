@@ -130,9 +130,18 @@ interface GasConfigErrorEnvelope {
 type GasConfigSurface = 'dialog' | 'sidebar' | 'page';
 /** Built-in visual themes. */
 type GasConfigTheme = 'workspace' | 'yorsh';
+/** What a user without read access sees: identity of the UI, no settings. */
+interface GasConfigDeniedState {
+  title: string;
+  appName?: string;
+  brand?: {
+    logoUrl?: string;
+  };
+}
 /**
  * JSON the server embeds in the page's `#gas-config-bootstrap` element. Every
- * key is optional: an empty object makes the UI fetch its own state.
+ * key is optional: an empty object makes the UI fetch its own state. A
+ * bootstrap carries `state` or `denied`, never both.
  */
 interface GasConfigBootstrap {
   surface?: GasConfigSurface;
@@ -144,4 +153,6 @@ interface GasConfigBootstrap {
   };
   /** When present, rendered immediately with no `getSettings` call. */
   state?: GasConfigSettingsState;
+  /** Present instead of `state` when the user may not read the settings. */
+  denied?: GasConfigDeniedState;
 }
