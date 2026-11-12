@@ -143,6 +143,20 @@ const _GasConfigUi = Object.freeze({
     return state;
   },
 
+  /**
+   * What a user without read access sees: the title, the appName and the
+   * logo. Nothing that describes the settings.
+   */
+  deniedState(config: GasConfig): GasConfigDeniedState {
+    return {
+      title: config.title,
+      ...(config.appName !== undefined && { appName: config.appName }),
+      ...(config.brand.logoUrl !== undefined && {
+        brand: { logoUrl: config.brand.logoUrl },
+      }),
+    };
+  },
+
   /** Builds the page with its bootstrap embedded. */
   render(
     config: GasConfig,
@@ -160,8 +174,9 @@ const _GasConfigUi = Object.freeze({
       surface,
       theme: config.theme,
       brand: { ...config.brand },
-      state: _GasConfigUi.buildState(config),
     };
+    if (config._canRead()) bootstrap.state = _GasConfigUi.buildState(config);
+    else bootstrap.denied = _GasConfigUi.deniedState(config);
     // Split rather than String.replace, whose "$" patterns would corrupt
     // stored values containing them.
     return HtmlService.createHtmlOutput(
@@ -309,6 +324,7 @@ const _GasConfigUi = Object.freeze({
   dispatch(config: GasConfig, method: string, payload: unknown): unknown {
     switch (method) {
       case 'getSettings':
+        config._assertCanRead();
         return _GasConfigUi.buildState(config);
       case 'saveSettings':
         return _GasConfigUi.save(config, payload as GasConfigSaveRequest);

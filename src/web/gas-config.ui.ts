@@ -13,6 +13,7 @@
     'M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440h80q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l62 62-56 58-160-160 160-160 56 58-62 62h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z';
   const SKELETON_SHAPE = [2, 3];
 
+  const DENIED_TEXT = 'You do not have access to these settings.';
   const READ_ONLY_TEXT = 'Only listed editors can change these settings.';
   const UNAUTHORIZED_TEXT = "You can't change these settings.";
   const RETRYING_TEXT = "Couldn't confirm the save. Retrying…";
@@ -41,6 +42,13 @@
     message: string;
   }
 
+  interface DeniedState {
+    status: 'denied';
+    title: string;
+    appName?: string | undefined;
+    logoUrl?: string | undefined;
+  }
+
   interface ReadyState {
     status: 'ready';
     settings: GasConfigSettingsState;
@@ -62,7 +70,7 @@
     confirming: boolean;
   }
 
-  type State = LoadingState | ErrorState | ReadyState;
+  type State = LoadingState | ErrorState | DeniedState | ReadyState;
 
   interface FieldView {
     field: GasConfigClientField;
@@ -228,7 +236,8 @@
       { root: dom.main },
     ).observe(dom.sentinel);
 
-    if (boot.state) onLoaded(boot.state);
+    if (boot.denied) onDenied();
+    else if (boot.state) onLoaded(boot.state);
     else void load();
   }
 
@@ -240,8 +249,22 @@
     try {
       onLoaded(await rpc.getSettings());
     } catch (error) {
-      onLoadFailed(rpc.parseFailure(error));
+      const failure = rpc.parseFailure(error);
+      if (failure.status === 401) onDenied();
+      else onLoadFailed(failure);
     }
+  }
+
+  /** Switches to the denied view, titled from the bootstrap when it has one. */
+  function onDenied(): void {
+    const source = boot.denied ?? boot.state;
+    state = {
+      status: 'denied',
+      title: source?.title ?? 'Settings',
+      appName: source?.appName,
+      logoUrl: source?.brand?.logoUrl,
+    };
+    render();
   }
 
   function onLoaded(settings: GasConfigSettingsState): void {
@@ -288,6 +311,7 @@
     dom.content.replaceChildren();
     if (state.status === 'loading') renderSkeleton();
     else if (state.status === 'error') renderError(state.message);
+    else if (state.status === 'denied') renderDenied(state);
     else renderReady(state);
     dom.footer.hidden = state.status !== 'ready' || !hasFooter();
     dom.main.scrollTop = 0;
@@ -353,13 +377,14 @@
     );
   }
 
-  /** Renders the settings form for the ready state. */
-  function renderReady(s: ReadyState): void {
-    const settings = s.settings;
-    dom.banner = el('div', { class: 'banner-slot' });
-    dom.content.appendChild(dom.banner);
-
-    const logoUrl = boot.brand.logoUrl ?? settings.brand?.logoUrl;
+  /** Renders the heading block shared by the ready and denied views. */
+  function renderHeader(header: {
+    title: string;
+    appName?: string | undefined;
+    description?: string | undefined;
+    logoUrl?: string | undefined;
+  }): void {
+    const logoUrl = boot.brand.logoUrl ?? header.logoUrl;
     const showLogo = theme === 'yorsh' && Boolean(logoUrl);
 
     if (surface === 'page') {
@@ -379,12 +404,12 @@
           el(
             'div',
             { class: 'page-heading' },
-            settings.appName
-              ? el('p', { class: 'app-name', text: settings.appName })
+            header.appName
+              ? el('p', { class: 'app-name', text: header.appName })
               : null,
-            el('h1', { class: 'page-title', text: settings.title }),
-            settings.description
-              ? el('p', { class: 'intro', text: settings.description })
+            el('h1', { class: 'page-title', text: header.title }),
+            header.description
+              ? el('p', { class: 'intro', text: header.description })
               : null,
           ),
         ),
@@ -401,16 +426,42 @@
             width: '32',
             height: '32',
           }),
-          settings.description
-            ? el('p', { class: 'intro', text: settings.description })
+          header.description
+            ? el('p', { class: 'intro', text: header.description })
             : null,
         ),
       );
-    } else if (settings.description) {
+    } else if (header.description) {
       dom.content.appendChild(
-        el('p', { class: 'intro', text: settings.description }),
+        el('p', { class: 'intro', text: header.description }),
       );
     }
+  }
+
+  /** Renders the denied view: the header and a notice, with no form. */
+  function renderDenied(s: DeniedState): void {
+    renderHeader({ title: s.title, appName: s.appName, logoUrl: s.logoUrl });
+    dom.content.appendChild(
+      el(
+        'div',
+        { class: 'banner banner--info', role: 'status' },
+        el('p', { class: 'banner-text', text: DENIED_TEXT }),
+      ),
+    );
+  }
+
+  /** Renders the settings form for the ready state. */
+  function renderReady(s: ReadyState): void {
+    const settings = s.settings;
+    dom.banner = el('div', { class: 'banner-slot' });
+    dom.content.appendChild(dom.banner);
+
+    renderHeader({
+      title: settings.title,
+      appName: settings.appName,
+      description: settings.description,
+      logoUrl: settings.brand?.logoUrl,
+    });
 
     const form = el('form', { class: 'form', novalidate: true });
     form.addEventListener('submit', (event) => {

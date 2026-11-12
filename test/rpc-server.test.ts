@@ -605,3 +605,59 @@ function loadMockState(): GasConfigSettingsState & Record<string, unknown> {
     .GasConfigRpc('getSettings');
   return state as GasConfigSettingsState & Record<string, unknown>;
 }
+
+describe('GasConfigRpc getSettings read gate', () => {
+  const RESTRICTED = { restrictReads: true, readers: ['reader@example.org'] };
+
+  it.each([
+    ['without gas-error', false],
+    ['with gas-error', true],
+  ])('refuses an unlisted user with a 401 %s', (_name, withGasError) => {
+    const { GasConfigRpc, mocks } = setup(
+      RESTRICTED,
+      { email: 'visitor@example.org' },
+      withGasError ? createGasError() : {},
+    );
+
+    const envelope = envelopeOf(() => GasConfigRpc('getSettings'));
+
+    expect(envelope).toMatchObject({
+      ok: false,
+      status: 401,
+      code: 'UNAUTHORIZED',
+      error: '[GasConfig] Not authorized',
+    });
+    expect(JSON.stringify(envelope)).not.toContain('visitor@example.org');
+    expect(mocks.properties.getProperties).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['without gas-error', false],
+    ['with gas-error', true],
+  ])('refuses an unidentified user with a 401 %s', (_name, withGasError) => {
+    const { GasConfigRpc, mocks } = setup(
+      RESTRICTED,
+      { email: '' },
+      withGasError ? createGasError() : {},
+    );
+
+    const envelope = envelopeOf(() => GasConfigRpc('getSettings'));
+
+    expect(envelope).toMatchObject({
+      ok: false,
+      status: 401,
+      code: 'UNAUTHORIZED',
+    });
+    expect(envelope.error).toContain('Unable to identify');
+    expect(mocks.properties.getProperties).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a listed reader', 'reader@example.org', false],
+    ['an editor', DEFAULT_EMAIL, true],
+  ])('returns the state to %s', (_name, email, canEdit) => {
+    const { GasConfigRpc } = setup(RESTRICTED, { email });
+
+    expect(GasConfigRpc('getSettings')).toMatchObject({ canEdit });
+  });
+});

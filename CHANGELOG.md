@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- `restrictReads` and `readers` options to restrict read access to the configuration
+- `GasConfigRpc('getSettings')` returns 401 for users without read access
+- `render()` shows a denied view with only the title, `appName` and brand logo for users without read access
+- `get()` and `getAll()` are not gated; behaviour is unchanged when both options are omitted
+
 ### Changed
 
 - README installs `gas-dev-bundle` `^2.0.0` (was `^1.1.1`)

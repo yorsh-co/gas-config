@@ -21,9 +21,13 @@ const load = createGasLoader<Library>({
 
 /**
  * Runs the library sources, as compiled for Apps Script, against minimal
- * fakes and returns the page `createHtmlOutput` produces.
+ * fakes and returns the page `createHtmlOutput` produces. `options` are merged
+ * into the constructor options and `email` is the signed-in user.
  */
-function renderServerPage(): string {
+function renderServerPage(
+  options: Record<string, unknown> = {},
+  email = 'editor@example.org',
+): string {
   const properties: Record<string, string> = {
     'gasConfig:org.name': JSON.stringify('Rendered by the server </script>'),
   };
@@ -44,7 +48,7 @@ function renderServerPage(): string {
     },
     LockService: { getScriptLock: () => lock },
     Session: {
-      getActiveUser: () => ({ getEmail: () => 'editor@example.org' }),
+      getActiveUser: () => ({ getEmail: () => email }),
     },
     Utilities: { getUuid: () => 'uuid-1' },
     HtmlService: {
@@ -69,6 +73,7 @@ function renderServerPage(): string {
         required: true,
       },
     },
+    ...options,
   });
   config.createHtmlOutput();
   return content;
@@ -106,6 +111,35 @@ test('renders the page the server code produced, with no getSettings call', asyn
   await expect(page.locator('html')).toHaveAttribute('data-surface', 'page');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'yorsh');
   await expect(page.locator('html')).toHaveCSS('--color-primary', '#7a1f5c');
+  await expect(page.locator('.skeleton')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => (window as never as { __calls: string[] }).__calls,
+    ),
+  ).toEqual([]);
+});
+
+test('renders only the denied view for a user without read access', async ({
+  page,
+}) => {
+  const html = renderServerPage({ restrictReads: true }, 'other@example.org');
+  expect(html).not.toContain('Rendered by the server');
+  expect(html).not.toContain('Organisation name');
+
+  await stubFonts(page);
+  await page.addInitScript(GOOGLE_STUB);
+  await page.route(`**${PAGE_URL}`, (route) =>
+    route.fulfill({ contentType: 'text/html', body: html }),
+  );
+  await page.goto(PAGE_URL);
+
+  await expect(
+    page.getByRole('heading', { name: 'Server settings' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('You do not have access to these settings.'),
+  ).toBeVisible();
+  await expect(page.getByLabel('Organisation name')).toHaveCount(0);
   await expect(page.locator('.skeleton')).toHaveCount(0);
   expect(
     await page.evaluate(
