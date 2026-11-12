@@ -17,7 +17,7 @@
  * `gasdev peers sync`, which writes it to `src/internal/`.
  *
  * @see https://github.com/yorsh-co/gas-config
- * @version 2.0.4
+ * @version 2.1.0
  */
 
 /** Every field type a schema can declare. */
