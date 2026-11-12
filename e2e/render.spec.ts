@@ -136,3 +136,33 @@ test('recolours the filled button and focus from --color-primary in the workspac
     'rgb(122, 31, 92)',
   );
 });
+
+test('applies the Yorsh brand palette in the yorsh theme', async ({ page }) => {
+  await openReady(page, { surface: 'page', theme: 'yorsh' });
+  await fillRequired(page);
+  const input = page.getByLabel('Organisation name');
+  await input.focus();
+
+  await expect(page.getByRole('button', { name: 'Save' })).toHaveCSS(
+    'background-color',
+    'rgb(163, 74, 28)',
+  );
+  await expect(input).toHaveCSS('border-color', 'rgb(15, 85, 99)');
+  await expect(page.locator('body')).toHaveCSS(
+    'background-color',
+    'rgb(247, 246, 243)',
+  );
+});
+
+for (const [theme, family] of [
+  ['yorsh', '"Space Grotesk"'],
+  ['workspace', 'Roboto'],
+] as const) {
+  test(`sets the ${theme} page title in ${family}`, async ({ page }) => {
+    await openReady(page, { surface: 'page', theme });
+    const fontFamily = await page
+      .locator('.page-title')
+      .evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(fontFamily.startsWith(family)).toBe(true);
+  });
+}

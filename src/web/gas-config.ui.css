@@ -5,6 +5,7 @@
 
 :root[data-theme='workspace'] {
   --font: Roboto, 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-display: var(--font);
   --color-primary: #0b57d0;
   --color-brand: var(--color-primary);
   --color-on-primary: #fff;
@@ -43,33 +44,37 @@
 
 :root[data-theme='yorsh'] {
   --font:
-    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --color-primary: #276182;
-  --color-brand: var(--color-primary);
+    'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-display:
+    'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  --color-primary: #a34a1c;
+  --color-brand: #0f5563;
   --color-on-primary: #fff;
-  --color-accent: #823437;
-  --color-bg: #f8fafb;
+  --color-accent: #a34a1c;
+  --color-bg: #f7f6f3;
   --color-surface: #fff;
-  --color-surface-container: #eef2f5;
-  --color-text: #1c2429;
-  --color-text-secondary: #5a6670;
-  --color-outline: #8a979f;
-  --color-outline-variant: #e2e8ec;
-  --color-divider: #e2e8ec;
+  --color-surface-container: #eeece7;
+  --color-text: #1b1a18;
+  --color-text-secondary: #605d58;
+  --color-outline: #85817a;
+  --color-outline-variant: #e3e0da;
+  --color-divider: #e3e0da;
   --color-error: #b42318;
-  --color-info-bg: #e3eef4;
-  --color-info-text: #153a50;
+  --color-info-bg: color-mix(in srgb, #0f5563 10%, transparent);
+  --color-info-text: #0f3f4a;
   --color-error-bg: #fbe4e1;
   --color-error-text: #5c120c;
-  --color-snackbar-bg: #1c2429;
-  --color-snackbar-text: #f8fafb;
+  --color-snackbar-bg: #1b1a18;
+  --color-snackbar-text: #f7f6f3;
   --radius-button: 0.5rem;
   --radius-control: 0.5rem;
   --radius-card: 0.5rem;
   --radius-banner: 0.5rem;
   --button-weight: 600;
   --button-tracking: 0;
-  --title-weight: 600;
+  --title-weight: 700;
   --section-title-weight: 700;
   --label-weight: 600;
   --section-divider: 0;
@@ -238,6 +243,7 @@ body {
   margin: 0;
   font-size: 22px;
   line-height: 28px;
+  font-family: var(--font-display);
   font-weight: var(--title-weight);
 }
 
@@ -279,6 +285,7 @@ body {
   border-bottom: var(--heading-border);
   font-size: var(--section-title-size);
   line-height: 24px;
+  font-family: var(--font-display);
   font-weight: var(--section-title-weight);
 }
 
