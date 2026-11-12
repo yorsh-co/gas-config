@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { collectErrors, openReady, type Surface, type Theme } from './ui';
+import {
+  collectErrors,
+  fillRequired,
+  openReady,
+  type Surface,
+  type Theme,
+} from './ui';
 
 const SURFACES: Surface[] = ['sidebar', 'dialog', 'page'];
 const THEMES: Theme[] = ['workspace', 'yorsh'];
@@ -89,4 +95,44 @@ test('shows the app name before the title on the page surface only', async ({
     await openReady(page, { surface, theme: 'workspace' });
     await expect(page.locator('.app-name')).toHaveCount(0);
   }
+});
+
+for (const theme of THEMES) {
+  test(`drives focus from --color-brand in the ${theme} theme`, async ({
+    page,
+  }) => {
+    await openReady(page, { theme });
+    await fillRequired(page);
+    const save = page.getByRole('button', { name: 'Save' });
+    const saveBackground = await save.evaluate(
+      (el) => getComputedStyle(el).backgroundColor,
+    );
+
+    await page.evaluate(() =>
+      document.documentElement.style.setProperty('--color-brand', '#123456'),
+    );
+    const input = page.getByLabel('Organisation name');
+    await input.focus();
+
+    await expect(input).toHaveCSS('border-color', 'rgb(18, 52, 86)');
+    await expect(save).toHaveCSS('background-color', saveBackground);
+  });
+}
+
+test('recolours the filled button and focus from --color-primary in the workspace theme', async ({
+  page,
+}) => {
+  await openReady(page, { theme: 'workspace' });
+  await fillRequired(page);
+  await page.evaluate(() =>
+    document.documentElement.style.setProperty('--color-primary', '#7a1f5c'),
+  );
+  const input = page.getByLabel('Organisation name');
+  await input.focus();
+
+  await expect(input).toHaveCSS('border-color', 'rgb(122, 31, 92)');
+  await expect(page.getByRole('button', { name: 'Save' })).toHaveCSS(
+    'background-color',
+    'rgb(122, 31, 92)',
+  );
 });

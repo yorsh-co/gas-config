@@ -6,6 +6,7 @@
 :root[data-theme='workspace'] {
   --font: Roboto, 'Segoe UI', system-ui, Arial, sans-serif;
   --color-primary: #0b57d0;
+  --color-brand: var(--color-primary);
   --color-on-primary: #fff;
   --color-accent: transparent;
   --color-bg: #f8fafd;
@@ -44,6 +45,7 @@
   --font:
     system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --color-primary: #276182;
+  --color-brand: var(--color-primary);
   --color-on-primary: #fff;
   --color-accent: #823437;
   --color-bg: #f8fafb;
@@ -146,7 +148,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
@@ -337,8 +339,8 @@ body {
 }
 
 .icon-btn:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-brand) 8%, transparent);
+  color: var(--color-brand);
 }
 
 .icon {
@@ -373,8 +375,8 @@ body {
 
 .control:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
 }
 
 .is-invalid .control,
@@ -505,8 +507,8 @@ body {
 }
 
 .switch:checked {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
+  border-color: var(--color-brand);
+  background: var(--color-brand);
 }
 
 .switch:checked::before {
@@ -639,7 +641,7 @@ body {
   border: 1px solid transparent;
   border-radius: var(--radius-button);
   background: transparent;
-  color: var(--color-primary);
+  color: var(--color-brand);
   font: inherit;
   font-weight: var(--button-weight);
   letter-spacing: var(--button-tracking);
@@ -652,7 +654,7 @@ body {
 }
 
 .btn--text:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  background: color-mix(in srgb, var(--color-brand) 8%, transparent);
 }
 
 .btn--outlined {
@@ -660,7 +662,7 @@ body {
 }
 
 .btn--outlined:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  background: color-mix(in srgb, var(--color-brand) 8%, transparent);
 }
 
 .btn--filled {
