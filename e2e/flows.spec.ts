@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { fillRequired, openReady, recordSaveIds, VALID_FORM_URL } from './ui';
+import {
+  collectErrors,
+  fillRequired,
+  openReady,
+  openUi,
+  recordSaveIds,
+  VALID_FORM_URL,
+} from './ui';
 
 test.describe('saving', () => {
   test('edits, saves and confirms with a snackbar', async ({ page }) => {
@@ -238,6 +245,26 @@ test.describe('failures', () => {
 
     await expect(page.getByLabel('Organisation name')).toBeVisible();
   });
+});
+
+test.describe('denied', () => {
+  for (const surface of ['page', 'dialog'] as const) {
+    test(`shows only the denied view on the ${surface}`, async ({ page }) => {
+      const errors = collectErrors(page);
+      await openUi(page, { surface, scenario: 'denied' });
+
+      await expect(
+        page.getByText('You do not have access to these settings.'),
+      ).toBeVisible();
+      await expect(page.getByLabel('Organisation name')).toHaveCount(0);
+      await expect(page.locator('input, textarea, select')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(
+        0,
+      );
+      expect(errors).toEqual([]);
+    });
+  }
 });
 
 test.describe('leaving', () => {
