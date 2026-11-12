@@ -325,6 +325,17 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   groups?: GasConfigGroup[];
   /** Emails allowed to change the settings. Omitted or empty means nobody. */
   editors?: string[];
+  /**
+   * Emails allowed to read the settings, besides `editors`. Setting it
+   * restricts reads; `undefined` leaves reads open to everyone, `[]` limits
+   * them to `editors`.
+   */
+  readers?: string[];
+  /**
+   * Limits reads to `editors` (and `readers`). Omitted or `false` leaves reads
+   * open unless `readers` is set; `false` with `readers` throws.
+   */
+  restrictReads?: boolean;
   /** @default 'Settings' */
   title?: string;
   /** Names the project above the page title and in the tab. Shown on the page surface only. */
@@ -378,6 +389,10 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   brand: GasConfigBrand;
   /** Normalised emails allowed to change the settings; empty means nobody. */
   editors: string[];
+  /** Whether reads are limited to `editors` and `readers`; true whenever `readers` was given. */
+  restrictReads: boolean;
+  /** Normalised emails allowed to read besides `editors`; `[]` when omitted. */
+  readers: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
   lockTimeoutMs: number;
