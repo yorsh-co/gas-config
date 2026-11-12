@@ -152,6 +152,8 @@ Components reference CSS custom properties only. The two built-in themes are tok
 <html data-theme="workspace" style="--color-primary: #7a1f5c"></html>
 ```
 
+`--color-primary` colours the primary action (`.btn--filled`). `--color-brand` colours focus rings, control focus, checked switches, icon-button hover and text and outlined buttons. In `workspace`, `--color-brand` is `var(--color-primary)`, so a brand override recolours all of them. In `yorsh`, `--color-brand` is petrol, so `brand.primaryColor` sets the primary action (the Save button) only.
+
 ## Known gaps versus production
 
 - Google draws the real title bar and close button for sidebars and dialogs; the harness only imitates them.
