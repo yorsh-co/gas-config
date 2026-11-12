@@ -1,6 +1,6 @@
 {
   "name": "gas-config",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "description": "A settings UI for Google Apps Script projects.",
   "repository": {
@@ -73,7 +73,8 @@
     "clean": "rimraf dist",
     "release": "gasdev release",
     "build": "npm run clean && npm run build:frontend && npm run build:backend",
-    "build:frontend": "gasdev html",
+    "build:fonts": "node scripts/build-fonts.js",
+    "build:frontend": "node scripts/build-fonts.js --check && gasdev html",
     "build:backend": "tsc -p tsconfig.json",
     "build:format": "npm run check && npm run build && npm run format:dist",
     "build:watch": "trap \"trap - INT TERM; kill 0\" INT TERM; tsc -p tsconfig.json --watch --preserveWatchOutput & tsc -p tsconfig.frontend.json --watch --preserveWatchOutput & wait",

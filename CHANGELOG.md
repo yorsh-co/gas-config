@@ -6,6 +6,22 @@
 
 ---
 
+## [2.2.0] - 2026-11-12
+
+### Added
+
+- `--color-brand` and `--font-display` theme tokens
+- `npm run build:fonts` script; `build:frontend` fails if the generated fonts CSS is stale
+
+### Changed
+
+- The yorsh theme uses the `@yorsh/brand` 1.0.0 palette: copper primary, petrol focus and structure, warm neutrals
+- Space Grotesk headings and DM Sans body text are inlined as data URIs, so no third-party font request is made; this adds about 79 KB to the generated HTML for all consumers (see ADR 0001)
+- The dev and manual fixtures use the new Yorsh mark
+- Behaviour change: in the yorsh theme, `brand.primaryColor` now recolours only the filled (Save) button; focus rings, switches, and text and outlined buttons use petrol. The workspace theme is unchanged
+
+---
+
 ## [2.1.0] - 2026-11-12
 
 ### Added
