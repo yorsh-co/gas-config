@@ -12,7 +12,7 @@ npm run dev
 
 starts `dev/serve.js`, a dependency-free Node server, and prints its address (`http://127.0.0.1:5173/` unless `PORT` is set). It serves the repository root read-only, refuses anything outside it or hidden (such as `.git`), sends no-cache headers, and redirects `/` to `/dev/index.html`.
 
-A browser request for `src/**/*.js` with no such file but a sibling `.ts` is answered with that TypeScript transpiled on the fly (ES2020, no module system), the same way `gas-dev-config html` transpiles it, so edits show on reload.
+A browser request for `src/**/*.js` with no such file but a sibling `.ts` is answered with that TypeScript transpiled on the fly (ES2020, no module system), the same way `gasdev html` transpiles it, so edits show on reload.
 
 `npm run test:e2e` starts the same server on port 5174 (or `PORT`) for the Playwright flows, so it can run beside `npm run dev`.
 
@@ -53,7 +53,7 @@ The close buttons in the imitation chrome, and `google.script.host.close()`, hid
 | `index.html`, `harness.*` | The harness described above.                                                                |
 | `assets/yorsh-mark.svg`   | The owner's brand mark, shown by the Yorsh theme on the page surface.                       |
 
-The UI document references the mock server with `data-dev-only`, so `gas-dev-config html` removes it from the built page. End-to-end tests (`npm run test:e2e`) drive this harness with Playwright.
+The UI document references the mock server with `data-dev-only`, so `gasdev html` removes it from the built page. End-to-end tests (`npm run test:e2e`) drive this harness with Playwright.
 
 ## Page bootstrap
 

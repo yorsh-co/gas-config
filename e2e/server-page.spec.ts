@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
-import { createGasLoader, loadOrderFiles } from 'gas-dev-config/test';
+import { createGasLoader, loadOrderFiles } from 'gasdev/test';
 import { stubFonts } from './ui';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));

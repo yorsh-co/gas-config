@@ -11,3 +11,9 @@ playwright-report/
 
 # Manual fixture build
 .manual-config/
+
+# Local agent state and secrets
+.claude/worktrees/
+.claude/plans/
+.claude/handoff/
+.env

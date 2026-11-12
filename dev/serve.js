@@ -1,7 +1,7 @@
 /**
  * Development server: serves the repository root read-only on 127.0.0.1 so the
  * harness can load the real UI sources. Browser TypeScript under `src/` is
- * transpiled on request, exactly as `gas-dev-config html` does, so a `.js`
+ * transpiled on request, exactly as `gasdev html` does, so a `.js`
  * reference resolves to its `.ts` source. Not part of the product.
  */
 import { existsSync, readFileSync, statSync } from 'node:fs';
