@@ -62,13 +62,16 @@ interface GasConfigBootstrapResult {
   theme: GasConfigTheme;
   brand: NonNullable<GasConfigBootstrap['brand']>;
   state: GasConfigSettingsState | null;
+  /** Set when the server denied read access; `state` is then `null`. */
+  denied: GasConfigDeniedState | null;
 }
 
 interface GasConfigBootstrapReaderApi {
   /**
    * Reads the bootstrap JSON, with the `surface` and `theme` query parameters
    * as a fallback for what it lacks. Malformed JSON and unknown values are
-   * ignored.
+   * ignored. A valid `denied` wins over `state` (fail closed), and only its
+   * whitelisted keys are copied.
    */
   read(
     json: string | null | undefined,

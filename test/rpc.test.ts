@@ -191,6 +191,7 @@ describe('GasConfigBootstrapReader.read', () => {
       theme: 'yorsh',
       brand: { primaryColor: '#7a1f5c', logoUrl: 'https://x.test/logo.svg' },
       state,
+      denied: null,
     });
   });
 
@@ -212,6 +213,7 @@ describe('GasConfigBootstrapReader.read', () => {
         theme: 'workspace',
         brand: {},
         state: null,
+        denied: null,
       });
     },
   );
@@ -230,6 +232,54 @@ describe('GasConfigBootstrapReader.read', () => {
       theme: 'workspace',
       brand: {},
       state: null,
+      denied: null,
     });
   });
+
+  it('carries only the whitelisted keys of denied', () => {
+    const { GasConfigBootstrapReader: reader } = loadClient();
+    const json = JSON.stringify({
+      denied: {
+        title: 'Settings',
+        appName: 'Acme',
+        brand: { logoUrl: 'https://x.test/l.svg', primaryColor: '#000' },
+        description: 'secret',
+        values: { a: 1 },
+      },
+    });
+
+    expect(reader.read(json, '')).toEqual({
+      surface: 'dialog',
+      theme: 'workspace',
+      brand: {},
+      state: null,
+      denied: {
+        title: 'Settings',
+        appName: 'Acme',
+        brand: { logoUrl: 'https://x.test/l.svg' },
+      },
+    });
+  });
+
+  it('lets denied win over state', () => {
+    const { GasConfigBootstrapReader: reader } = loadClient();
+    const json = JSON.stringify({ state, denied: { title: 'Settings' } });
+
+    expect(reader.read(json, '')).toMatchObject({
+      state: null,
+      denied: { title: 'Settings' },
+    });
+  });
+
+  it.each([[{}], [{ title: '' }], [{ title: 3 }], ['x'], [[1]], [null]])(
+    'ignores a malformed denied %j',
+    (denied) => {
+      const { GasConfigBootstrapReader: reader } = loadClient();
+
+      expect(reader.read(JSON.stringify({ state, denied }), '')).toMatchObject({
+        state,
+        denied: null,
+      });
+    },
+  );
 });

@@ -185,6 +185,9 @@ var google = (function () {
 
   var handlers = {
     getSettings: function () {
+      if (scenario === 'denied') {
+        throw envelopeError(401, 'UNAUTHORIZED', 'Not authorized');
+      }
       if (scenario === 'load-error' && !loadFailed) {
         loadFailed = true;
         throw envelopeError(

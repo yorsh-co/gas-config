@@ -39,6 +39,7 @@ The close buttons in the imitation chrome, and `google.script.host.close()`, hid
 | `conflict`       | The first save returns a conflict; after Reload, saves work.                                                       |
 | `readonly`       | `canEdit` is `false`; a save would fail with a 401 `UNAUTHORIZED` envelope.                                        |
 | `unauthorized`   | The user may edit, but every save fails with a 401 `UNAUTHORIZED` envelope; the UI switches to read-only.          |
+| `denied`         | `getSettings` fails with a 401 `UNAUTHORIZED` envelope; the UI shows the denied view with no form.                 |
 | `load-error`     | The first `getSettings` fails with a 500 envelope; Try again succeeds.                                             |
 | `timeout`        | The first save is never answered. The client times out after 30 s, retries with the same `saveId`, and it works.   |
 | `timeout-twice`  | The first two saves are never answered: the client shows its retry, then the "may not have been saved" banner.     |

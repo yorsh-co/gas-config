@@ -34,6 +34,7 @@
         ['readonly', 'Not the owner'],
         ['load-error', 'Load failure'],
         ['unauthorized', 'Unauthorized'],
+        ['denied', 'No read access'],
         ['timeout', 'Save timeout'],
         ['timeout-twice', 'Save timeout (twice)'],
         ['stored-invalid', 'Invalid stored value'],
