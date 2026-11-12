@@ -3,3 +3,4 @@ node_modules
 .claude/worktrees
 .claude/plans
 .claude/handoff
+src/web/gas-config.fonts.css

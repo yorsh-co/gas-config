@@ -565,18 +565,18 @@ Values live in Script Properties.
 
 ## Theming
 
-| Option               | Description                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `theme: 'workspace'` | The default. Material 3 as used in Google Workspace, so the UI feels native to the host      |
-| `theme: 'yorsh'`     | The Yorsh brand look                                                                         |
-| `brand.primaryColor` | `#rgb` or `#rrggbb`. Replaces the theme's primary colour on buttons, focus rings and accents |
-| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on every surface in the `yorsh` theme only     |
+| Option               | Description                                                                                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `theme: 'workspace'` | The default. Material 3 as used in Google Workspace, so the UI feels native to the host                                                                                                                                        |
+| `theme: 'yorsh'`     | The Yorsh brand look                                                                                                                                                                                                           |
+| `brand.primaryColor` | `#rgb` or `#rrggbb`. Replaces the primary colour. In `workspace` it also drives focus rings and controls. In `yorsh` it sets the primary action (the Save button) only, as petrol (`--color-brand`) carries focus and controls |
+| `brand.logoUrl`      | An `https:` URL or a `data:image/` URI. Shown on every surface in the `yorsh` theme only                                                                                                                                       |
 
 ```js
 const config = new GasConfig({
   theme: 'yorsh',
   brand: {
-    primaryColor: '#276182',
+    primaryColor: '#a34a1c',
     logoUrl: 'https://example.org/logo.svg',
   },
   schema: {/* ... */},
