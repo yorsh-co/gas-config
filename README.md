@@ -124,7 +124,7 @@ It is recommended to use `gas-config` together with [Google's `clasp` CLI](https
 [gasdev bundle](https://github.com/yorsh-co/gasdev#bundle) resolves version ranges against the libraries' release tags and writes them into one script, in dependency order.
 
 ```bash
-npm install -D github:yorsh-co/gasdev#semver:^3.0.0-beta.1
+npm install -D github:yorsh-co/gasdev#semver:^3.0.0
 ```
 
 List the libraries in your `package.json`:
