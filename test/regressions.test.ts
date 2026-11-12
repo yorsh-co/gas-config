@@ -226,3 +226,130 @@ describe('lesson: optional peers fail only at runtime when absent (P7)', () => {
     expect(mocks.console.warn).not.toHaveBeenCalled();
   });
 });
+
+describe('lesson: read access is opt-in', () => {
+  const html = (output: unknown): GasConfigBootstrap => {
+    const match = /id="gas-config-bootstrap">(.*?)<\/script>/s.exec(
+      (output as { content: string }).content,
+    );
+    return JSON.parse((match as RegExpExecArray)[1] as string);
+  };
+
+  it('leaves getSettings and render unchanged with both options omitted', () => {
+    const properties = { [prop('org')]: JSON.stringify('Acme') };
+    const opts = { properties, email: 'visitor@example.org' };
+    const a = setup({}, opts);
+    const b = setup({}, opts);
+
+    const state = a.GasConfigRpc('getSettings');
+    expect(state).toEqual({
+      title: 'Settings',
+      groups: [],
+      canEdit: false,
+      version: '',
+      values: {
+        org: 'Acme',
+        site: null,
+        notes: null,
+        passMark: 70,
+        locale: 'en-GB',
+        closesOn: null,
+        enabled: true,
+        quiet: false,
+      },
+      fields: [
+        {
+          key: 'org',
+          type: 'string',
+          label: 'Organisation',
+          required: true,
+          default: null,
+        },
+        {
+          key: 'site',
+          type: 'url',
+          label: 'Site',
+          required: false,
+          default: null,
+        },
+        {
+          key: 'notes',
+          type: 'text',
+          label: 'Notes',
+          required: false,
+          default: null,
+          rules: { maxLength: 20 },
+        },
+        {
+          key: 'passMark',
+          type: 'number',
+          label: 'Pass mark',
+          required: false,
+          default: 70,
+          rules: { integer: true, max: 100, min: 0 },
+        },
+        {
+          key: 'locale',
+          type: 'select',
+          label: 'Locale',
+          required: false,
+          default: 'en-GB',
+          options: [
+            { value: 'en-GB', label: 'English' },
+            { value: 'pt-BR', label: 'Portuguese' },
+          ],
+        },
+        {
+          key: 'closesOn',
+          type: 'date',
+          label: 'Closes on',
+          required: false,
+          default: null,
+        },
+        {
+          key: 'enabled',
+          type: 'boolean',
+          label: 'Enabled',
+          required: false,
+          default: true,
+        },
+        {
+          key: 'quiet',
+          type: 'boolean',
+          label: 'Quiet',
+          required: false,
+          default: false,
+        },
+      ],
+    });
+
+    b.config.createHtmlOutput();
+    const boot = html(b.mocks.outputs[b.mocks.outputs.length - 1]);
+    expect(boot).not.toHaveProperty('denied');
+    expect(boot.state).toEqual(state);
+  });
+
+  it('does not read Session for an unrestricted read check', () => {
+    const { config, mocks } = setup();
+
+    expect(config._canRead()).toBe(true);
+    expect(() => config._assertCanRead()).not.toThrow();
+    expect(mocks.Session.getActiveUser).not.toHaveBeenCalled();
+  });
+
+  it('reads Session once for render', () => {
+    const { config, mocks } = setup();
+
+    config.createHtmlOutput();
+
+    expect(mocks.Session.getActiveUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads Session exactly once for getSettings', () => {
+    const { GasConfigRpc, mocks } = setup();
+
+    GasConfigRpc('getSettings');
+
+    expect(mocks.Session.getActiveUser).toHaveBeenCalledTimes(1);
+  });
+});

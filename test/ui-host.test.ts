@@ -407,3 +407,74 @@ describe('page integrity', () => {
     );
   });
 });
+
+describe('denied render', () => {
+  const OPTIONS = {
+    restrictReads: true,
+    title: 'Trust settings',
+    appName: 'Portal',
+    description: 'Secret description.',
+    brand: { primaryColor: '#7a1f5c', logoUrl: 'https://example.org/l.svg' },
+  };
+  const VISITOR = { email: 'visitor@example.org' };
+  const stored = { [prop('org')]: JSON.stringify('Hidden Org') };
+
+  const surfaces = {
+    createHtmlOutput: (config: GasConfig) => config.createHtmlOutput(),
+    showDialog: (config: GasConfig) => config.showDialog(createUi() as never),
+    showSidebar: (config: GasConfig) => config.showSidebar(createUi() as never),
+  };
+
+  it.each(Object.keys(surfaces) as (keyof typeof surfaces)[])(
+    'embeds only the identity for a denied user on %s',
+    (surface) => {
+      const { config, mocks } = setup(OPTIONS, {
+        ...VISITOR,
+        properties: stored,
+      });
+
+      expect(() => surfaces[surface](config)).not.toThrow();
+
+      const output = lastOutput(mocks.outputs);
+      const boot = bootstrapOf(output);
+      expect(boot.denied).toEqual({
+        title: 'Trust settings',
+        appName: 'Portal',
+        brand: { logoUrl: 'https://example.org/l.svg' },
+      });
+      expect(boot).not.toHaveProperty('state');
+      for (const secret of [
+        'Secret description.',
+        SCHEMA.org.label,
+        'Hidden Org',
+        '"version"',
+      ]) {
+        expect(output.content).not.toContain(secret);
+      }
+      expect(mocks.properties.getProperties).not.toHaveBeenCalled();
+    },
+  );
+
+  it('carries only the title without an appName or logo', () => {
+    const { config, mocks } = setup({ restrictReads: true }, { email: '' });
+
+    config.createHtmlOutput();
+
+    expect(bootstrapOf(lastOutput(mocks.outputs)).denied).toEqual({
+      title: 'Settings',
+    });
+  });
+
+  it('still embeds the state for a reader', () => {
+    const { config, mocks } = setup(
+      { ...OPTIONS, readers: ['reader@example.org'] },
+      { email: 'reader@example.org' },
+    );
+
+    config.createHtmlOutput();
+
+    const boot = bootstrapOf(lastOutput(mocks.outputs));
+    expect(boot.state?.title).toBe('Trust settings');
+    expect(boot).not.toHaveProperty('denied');
+  });
+});

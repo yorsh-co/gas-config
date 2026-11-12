@@ -13,11 +13,11 @@
  * `include: ["src/**\/*.ts"]` but emits nothing, so no counterpart reaches
  * dist/ or the published package.
  *
- * Usage: list `gas-config` in `gasDevConfig.peers` and run
- * `gas-dev-config peers sync`, which writes it to `src/internal/`.
+ * Usage: list `gas-config` in `gasdev.peers` and run
+ * `gasdev peers sync`, which writes it to `src/internal/`.
  *
  * @see https://github.com/yorsh-co/gas-config
- * @version 2.0.4
+ * @version 2.1.0
  */
 
 /** Every field type a schema can declare. */
@@ -160,9 +160,17 @@ type GasConfigSurface = 'dialog' | 'sidebar' | 'page';
 /** Built-in visual themes. */
 type GasConfigTheme = 'workspace' | 'yorsh';
 
+/** What a user without read access sees: identity of the UI, no settings. */
+interface GasConfigDeniedState {
+  title: string;
+  appName?: string;
+  brand?: { logoUrl?: string };
+}
+
 /**
  * JSON the server embeds in the page's `#gas-config-bootstrap` element. Every
- * key is optional: an empty object makes the UI fetch its own state.
+ * key is optional: an empty object makes the UI fetch its own state. A
+ * bootstrap carries `state` or `denied`, never both.
  */
 interface GasConfigBootstrap {
   surface?: GasConfigSurface;
@@ -174,6 +182,8 @@ interface GasConfigBootstrap {
   };
   /** When present, rendered immediately with no `getSettings` call. */
   state?: GasConfigSettingsState;
+  /** Present instead of `state` when the user may not read the settings. */
+  denied?: GasConfigDeniedState;
 }
 
 /** Value type of each field `type`. Empty is `null`, except for booleans. */
@@ -325,6 +335,17 @@ interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   groups?: GasConfigGroup[];
   /** Emails allowed to change the settings. Omitted or empty means nobody. */
   editors?: string[];
+  /**
+   * Emails allowed to read the settings, besides `editors`. Setting it
+   * restricts reads; `undefined` leaves reads open to everyone, `[]` limits
+   * them to `editors`.
+   */
+  readers?: string[];
+  /**
+   * Limits reads to `editors` (and `readers`). Omitted or `false` leaves reads
+   * open unless `readers` is set; `false` with `readers` throws.
+   */
+  restrictReads?: boolean;
   /** @default 'Settings' */
   title?: string;
   /** Names the project above the page title and in the tab. Shown on the page surface only. */
@@ -378,6 +399,10 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   brand: GasConfigBrand;
   /** Normalised emails allowed to change the settings; empty means nobody. */
   editors: string[];
+  /** Whether reads are limited to `editors` and `readers`; true whenever `readers` was given. */
+  restrictReads: boolean;
+  /** Normalised emails allowed to read besides `editors`; `[]` when omitted. */
+  readers: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
   lockTimeoutMs: number;

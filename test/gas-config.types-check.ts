@@ -36,6 +36,8 @@ const config = new GasConfig({
   },
   groups: [{ id: 'general', label: 'General', description: 'Basics' }],
   editors: ['a@example.org'],
+  restrictReads: true,
+  readers: ['b@example.org'],
   title: 'Settings',
   description: 'About',
   appName: 'Trust portal',
@@ -201,7 +203,25 @@ if (outcome.ok) {
   void version;
 }
 
+// The resolved access options are exposed.
+const restrictReads: boolean = config.restrictReads;
+const readers: string[] = config.readers;
+
+new GasConfig({
+  schema: { a: { type: 'string', label: 'A' } },
+  // @ts-expect-error restrictReads is a boolean
+  restrictReads: 'yes',
+});
+
+new GasConfig({
+  schema: { a: { type: 'string', label: 'A' } },
+  // @ts-expect-error readers is an array
+  readers: 'a@b.c',
+});
+
 void [
+  restrictReads,
+  readers,
   name,
   limit,
   closesOn,

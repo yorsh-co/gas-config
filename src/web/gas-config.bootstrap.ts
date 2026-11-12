@@ -42,6 +42,21 @@ const GasConfigBootstrapReader: GasConfigBootstrapReaderApi = (() => {
       if (logoUrl) brand.logoUrl = logoUrl;
     }
 
+    let denied: GasConfigDeniedState | null = null;
+    const rawDenied = data['denied'];
+    if (isRecord(rawDenied)) {
+      const title = text(rawDenied['title']);
+      if (title) {
+        denied = { title };
+        const appName = text(rawDenied['appName']);
+        if (appName) denied.appName = appName;
+        const deniedLogo = isRecord(rawDenied['brand'])
+          ? text(rawDenied['brand']['logoUrl'])
+          : undefined;
+        if (deniedLogo) denied.brand = { logoUrl: deniedLogo };
+      }
+    }
+
     return {
       surface:
         oneOf(SURFACES, data['surface']) ??
@@ -52,9 +67,11 @@ const GasConfigBootstrapReader: GasConfigBootstrapReaderApi = (() => {
         oneOf(THEMES, params.get('theme')) ??
         'workspace',
       brand,
-      state: isRecord(data['state'])
-        ? (data['state'] as unknown as GasConfigSettingsState)
-        : null,
+      state:
+        !denied && isRecord(data['state'])
+          ? (data['state'] as unknown as GasConfigSettingsState)
+          : null,
+      denied,
     };
   };
 

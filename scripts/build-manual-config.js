@@ -18,7 +18,7 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bundle } from 'gas-dev-bundle';
+import { bundle } from 'gasdev/bundle';
 import { assertNoHostServices } from './host-services.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -41,9 +41,7 @@ if (!HOSTS.includes(host)) {
   process.exit(1);
 }
 
-const { gasDevConfig } = JSON.parse(
-  readFileSync(join(ROOT, 'package.json'), 'utf8'),
-);
+const { gasdev } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 
 /** Writes `content` to `path` under the output folder, creating directories. */
 function emit(path, content) {
@@ -66,7 +64,7 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
 // Peers, bundled from their release tags as a consumer would.
-const peerCode = bundle({ libraries: gasDevConfig.peers, cwd: ROOT }).code;
+const peerCode = bundle({ libraries: gasdev.peers, cwd: ROOT }).code;
 try {
   assertNoHostServices(peerCode);
 } catch (error) {
@@ -78,7 +76,7 @@ emit('lib/gas-libraries.js', peerCode);
 // The compiled library, one file each, in load order. Type-only files compile
 // to nothing and are left out.
 const libraryFiles = [];
-for (const file of gasDevConfig.loadOrder) {
+for (const file of gasdev.loadOrder) {
   const compiled = file.replace(/\.ts$/, '.js');
   const code = readFileSync(join(ROOT, 'dist', compiled), 'utf8');
   if (isEmpty(code)) continue;

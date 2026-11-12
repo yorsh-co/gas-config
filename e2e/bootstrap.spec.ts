@@ -141,3 +141,61 @@ test('runs against the unreplaced placeholder', async ({ page }) => {
   await expect(page.getByLabel('Organisation name')).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-surface', 'sidebar');
 });
+
+test('renders a denied bootstrap without calling getSettings', async ({
+  page,
+}) => {
+  await openEmbedded(page, {
+    surface: 'page',
+    theme: 'workspace',
+    denied: { title: 'Locked settings', appName: 'Acme' },
+  });
+
+  await expect(
+    page.getByRole('heading', { name: 'Locked settings' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('You do not have access to these settings.'),
+  ).toBeVisible();
+  await expect(page.getByLabel('Organisation name')).toHaveCount(0);
+  await expect(page.locator('.skeleton')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => (window as never as { __calls: string[] }).__calls,
+    ),
+  ).toEqual([]);
+});
+
+test('renders the denied view when getSettings fails with a 401', async ({
+  page,
+}) => {
+  await stubFonts(page);
+  await page.route('**/dev/mock-server.js', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: `
+        var google = { script: {
+          run: (function () {
+            var failure;
+            var runner = {
+              withSuccessHandler: function () { return runner; },
+              withFailureHandler: function (fn) { failure = fn; return runner; },
+              GasConfigRpc: function () {
+                failure(new Error(JSON.stringify({ ok: false, status: 401,
+                  code: 'UNAUTHORIZED', error: 'Not authorized' })));
+              },
+            };
+            return runner;
+          })(),
+          host: { close: function () {} } } };
+      `,
+    }),
+  );
+  await page.goto('/src/web/gas-config.ui.html?surface=page');
+
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(
+    page.getByText('You do not have access to these settings.'),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0);
+});

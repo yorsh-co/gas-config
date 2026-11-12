@@ -347,3 +347,243 @@ describe('access: reads are never gated', () => {
     expect(config.get('org')).toBe('Acme');
   });
 });
+
+describe('readers: normalisation', () => {
+  const readers = (list: unknown) =>
+    setup({ readers: list as string[] }).config.readers;
+
+  it('trims, lowercases and deduplicates', () => {
+    expect(
+      readers(['  Ann@Example.ORG ', 'ann@example.org', 'bob@example.org']),
+    ).toEqual(['ann@example.org', 'bob@example.org']);
+  });
+
+  it('defaults to an empty list', () => {
+    expect(setup().config.readers).toEqual([]);
+  });
+
+  it('copies the list', () => {
+    const source = ['a@example.org'];
+    const config = setup({ readers: source }).config;
+
+    source.push('b@example.org');
+
+    expect(config.readers).toEqual(['a@example.org']);
+  });
+});
+
+describe('readers: validation', () => {
+  it.each([
+    ['a string', 'a@example.org'],
+    ['null', null],
+    ['an empty entry', ['']],
+    ['a blank entry', ['  ']],
+    ['a non-string entry', [5]],
+  ])('rejects %s', (_name, list) => {
+    const error = thrownBy(() => setup({ readers: list as never }));
+
+    expect(error.constructor).toBe(Error);
+    expect(error.message).toBe(
+      '[GasConfig] Invalid "readers": expected an array of non-empty email strings.',
+    );
+  });
+
+  it.each(['plain', 'a@b', '@example.org', 'a b@example.org'])(
+    'rejects %j as not an email address',
+    (email) => {
+      expect(thrownBy(() => setup({ readers: [email] })).message).toBe(
+        `[GasConfig] Invalid "readers": "${email.toLowerCase()}" is not an email address.`,
+      );
+    },
+  );
+
+  it('reports a malformed readers before the restrictReads contradiction', () => {
+    expect(
+      thrownBy(() => setup({ restrictReads: false, readers: 'x' as never }))
+        .message,
+    ).toMatch(/^\[GasConfig\] Invalid "readers"/);
+  });
+});
+
+describe('restrictReads: validation', () => {
+  it.each([
+    ['a string', 'yes'],
+    ['a number', 1],
+    ['null', null],
+  ])('rejects %s', (_name, value) => {
+    const error = thrownBy(() => setup({ restrictReads: value as never }));
+
+    expect(error.constructor).toBe(Error);
+    expect(error.message).toBe(
+      '[GasConfig] Invalid "restrictReads": expected a boolean.',
+    );
+  });
+
+  it('rejects false alongside readers', () => {
+    expect(
+      thrownBy(() => setup({ restrictReads: false, readers: [] })).message,
+    ).toBe(
+      '[GasConfig] Invalid "restrictReads": false contradicts "readers"; omit one.',
+    );
+  });
+
+  it('allows false with readers undefined', () => {
+    const { config } = setup({
+      restrictReads: false,
+      readers: undefined as never,
+    });
+
+    expect(config.restrictReads).toBe(false);
+  });
+});
+
+describe('restrictReads: resolution', () => {
+  it.each([
+    ['both omitted', {}, false, []],
+    ['false', { restrictReads: false }, false, []],
+    ['true', { restrictReads: true }, true, []],
+    ['empty readers', { readers: [] }, true, []],
+    ['readers', { readers: ['R@example.org'] }, true, ['r@example.org']],
+    [
+      'true with readers',
+      { restrictReads: true, readers: ['r@example.org'] },
+      true,
+      ['r@example.org'],
+    ],
+  ] as const)('%s', (_name, options, restrictReads, readers) => {
+    const { config } = setup({ ...options } as never);
+
+    expect(config.restrictReads).toBe(restrictReads);
+    expect(config.readers).toEqual(readers);
+  });
+});
+
+describe('access: canRead', () => {
+  const read = (
+    options: Partial<GasConfigOptions>,
+    email: string | Error = 'user@example.org',
+  ) => setup({ editors: ['editor@example.org'], ...options }, { email });
+
+  it('lets everyone read when unrestricted, even when unidentified', () => {
+    expect(read({}, '').config._canRead()).toBe(true);
+    expect(read({}, new Error('no scope')).config._canRead()).toBe(true);
+  });
+
+  it('lets an editor read', () => {
+    expect(
+      read({ restrictReads: true }, 'editor@example.org').config._canRead(),
+    ).toBe(true);
+  });
+
+  it('lets a reader read', () => {
+    expect(read({ readers: ['user@example.org'] }).config._canRead()).toBe(
+      true,
+    );
+  });
+
+  it('lets an email in both lists read', () => {
+    expect(
+      read(
+        { readers: ['editor@example.org'] },
+        'editor@example.org',
+      ).config._canRead(),
+    ).toBe(true);
+  });
+
+  it('refuses an unlisted user', () => {
+    expect(read({ readers: ['other@example.org'] }).config._canRead()).toBe(
+      false,
+    );
+    expect(read({ restrictReads: true }).config._canRead()).toBe(false);
+  });
+
+  it('refuses an unidentified user', () => {
+    expect(read({ restrictReads: true }, '').config._canRead()).toBe(false);
+  });
+
+  it('refuses when Session throws, without throwing', () => {
+    const { config } = read({ restrictReads: true }, new Error('no scope'));
+
+    expect(() => config._canRead()).not.toThrow();
+    expect(config._canRead()).toBe(false);
+  });
+
+  it('matches case-insensitively', () => {
+    expect(
+      read(
+        { readers: ['USER@Example.org'] },
+        'User@EXAMPLE.org',
+      ).config._canRead(),
+    ).toBe(true);
+  });
+});
+
+describe('access: assertCanRead', () => {
+  it('returns for a reader and an editor', () => {
+    const reader = setup(
+      { readers: ['r@example.org'] },
+      { email: 'r@example.org' },
+    );
+    const editor = setup({ restrictReads: true });
+
+    expect(() => reader.config._assertCanRead()).not.toThrow();
+    expect(() => editor.config._assertCanRead()).not.toThrow();
+  });
+
+  it('throws a 401 for an unlisted user, without the email', () => {
+    const { config } = setup(
+      { restrictReads: true },
+      { email: 'other@example.org' },
+    );
+    const error = thrownBy(() => config._assertCanRead());
+
+    expect(error).toMatchObject({
+      message: '[GasConfig] Not authorized',
+      statusCode: 401,
+      code: 'UNAUTHORIZED',
+    });
+    expect(error.message).not.toContain('other@example.org');
+  });
+
+  it('throws a 401 for an unidentified user', () => {
+    for (const email of ['', new Error('no scope')]) {
+      const { config } = setup({ restrictReads: true }, { email });
+
+      expect(thrownBy(() => config._assertCanRead())).toMatchObject({
+        message: '[GasConfig] Unable to identify the signed-in user',
+        statusCode: 401,
+        code: 'UNAUTHORIZED',
+      });
+    }
+  });
+
+  it('throws GasUnauthorizedError when gas-error is loaded', () => {
+    const { config, GasConfigError } = setup(
+      { restrictReads: true },
+      { email: 'other@example.org' },
+      { GasUnauthorizedError },
+    );
+
+    const error = thrownBy(() => config._assertCanRead());
+
+    expect(error).toBeInstanceOf(GasUnauthorizedError);
+    expect(error).not.toBeInstanceOf(GasConfigError);
+    expect(error).toMatchObject({
+      message: '[GasConfig] Not authorized',
+      statusCode: 401,
+    });
+  });
+});
+
+describe('access: unrestricted reads', () => {
+  it.each([
+    ['both options omitted', {}],
+    ['restrictReads: false', { restrictReads: false }],
+  ])('never read Session with %s', (_name, options) => {
+    const { config, mocks } = setup(options);
+
+    expect(config._canRead()).toBe(true);
+    expect(() => config._assertCanRead()).not.toThrow();
+    expect(mocks.Session.getActiveUser).not.toHaveBeenCalled();
+  });
+});
