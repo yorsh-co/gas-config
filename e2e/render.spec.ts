@@ -164,5 +164,32 @@ for (const [theme, family] of [
       .locator('.page-title')
       .evaluate((el) => getComputedStyle(el).fontFamily);
     expect(fontFamily.startsWith(family)).toBe(true);
+
+    if (theme === 'yorsh') {
+      // check() is true when no matching face exists, so assert the faces are declared and loaded.
+      const loaded = await page.evaluate(async () => {
+        const faces = [...document.fonts].map((f) =>
+          f.family.replace(/"/g, ''),
+        );
+        await Promise.all(
+          ['700 22px "Space Grotesk"', '400 16px "DM Sans"'].map((f) =>
+            document.fonts.load(f),
+          ),
+        );
+        await document.fonts.ready;
+        return {
+          faces,
+          display: document.fonts.check('700 22px "Space Grotesk"'),
+          body: document.fonts.check('400 16px "DM Sans"'),
+          statuses: [...document.fonts].map((f) => f.status),
+        };
+      });
+      expect(loaded.faces).toEqual(
+        expect.arrayContaining(['Space Grotesk', 'DM Sans']),
+      );
+      expect(loaded.statuses.every((s) => s === 'loaded')).toBe(true);
+      expect(loaded.display).toBe(true);
+      expect(loaded.body).toBe(true);
+    }
   });
 }
