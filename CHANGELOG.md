@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+---
+
+## [2.2.0] - 2026-11-12
+
 ### Added
 
 - `--color-brand` and `--font-display` theme tokens
