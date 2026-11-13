@@ -546,11 +546,12 @@ By default everyone who can open the settings can read them. `restrictReads` and
 
 `GAS_CONFIG_READERS` is the Script Property counterpart of `readers`. It is read only when the `readers` option is omitted, and is normalised and validated like `GAS_CONFIG_EDITORS`.
 
-| `restrictReads` | `GAS_CONFIG_READERS` | Who can read                                                    |
-| --------------- | -------------------- | --------------------------------------------------------------- |
-| omitted, `true` | set (even empty)     | `editors` and the listed readers; empty means `editors` only    |
-| `true`          | not set              | `editors` only                                                  |
-| `false`         | set                  | `editors` and the listed readers, with a warning (fails closed) |
+| `restrictReads`  | `GAS_CONFIG_READERS` | Who can read                                                    |
+| ---------------- | -------------------- | --------------------------------------------------------------- |
+| omitted, `true`  | set (even empty)     | `editors` and the listed readers; empty means `editors` only    |
+| omitted, `false` | not set              | Everyone                                                        |
+| `true`           | not set              | `editors` only                                                  |
+| `false`          | set                  | `editors` and the listed readers, with a warning (fails closed) |
 
 - Setting `readers` restricts reads by itself, even when it is empty: omitted (`undefined`) means no restriction, `[]` means editors only. `restrictReads: true` alongside it is redundant and allowed.
 - A set `GAS_CONFIG_READERS` restricts reads by itself, even when it is an empty string. An invalid email in it makes the list empty and logs a warning naming the key, so reads stay restricted to editors.

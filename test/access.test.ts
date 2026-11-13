@@ -785,12 +785,29 @@ describe('allowlists: Script Properties', () => {
     expect(config._canEdit()).toBe(false);
     expect(logger.warn).toHaveBeenCalledWith(
       `Script Property "${EDITORS}" could not be read; nobody is listed.`,
-      { property: EDITORS },
+      { property: EDITORS, error: 'Error' },
     );
     expect(JSON.stringify(logger.warn.mock.calls)).not.toContain(
       'secret-value',
     );
     expect(failing('other@example.org').config._canRead()).toBe(false);
+  });
+
+  it('does not report a contradiction when GAS_CONFIG_READERS cannot be read', () => {
+    const { config, mocks, logger } = setup(
+      { restrictReads: false },
+      { properties: {}, email: 'other@example.org' },
+    );
+    mocks.properties.getProperty.mockImplementation(() => {
+      throw new Error('secret-value');
+    });
+
+    expect(config._canRead()).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Script Property "${READERS}" could not be read; nobody is listed.`,
+      { property: READERS, error: 'Error' },
+    );
+    expect(JSON.stringify(logger.warn.mock.calls)).not.toContain('contradicts');
   });
 
   it('falls back to console.warn when the logger throws on an invalid list', () => {

@@ -46,6 +46,7 @@ class _GasConfigAccess {
   private _editors: ReadonlySet<string> | undefined;
   /** `null` once resolved when neither the option nor the property is set. */
   private _readers: ReadonlySet<string> | null | undefined;
+  private _readFailed = false;
   private _identified = false;
   private _email: string | null = null;
 
@@ -77,12 +78,14 @@ class _GasConfigAccess {
    */
   readers(): ReadonlySet<string> | null {
     if (this._readers === undefined) {
+      this._readFailed = false;
       const listed =
         this._options.readers ??
         this._fromProperty(_GAS_CONFIG_READERS_PROPERTY);
 
       if (
         listed !== undefined &&
+        !this._readFailed &&
         this._options.readers === undefined &&
         this._options.restrictReads === false
       ) {
@@ -174,10 +177,11 @@ class _GasConfigAccess {
     try {
       this._properties ??= PropertiesService.getScriptProperties();
       value = this._properties.getProperty(key);
-    } catch {
+    } catch (err) {
+      this._readFailed = true;
       this._warn(
         `Script Property "${key}" could not be read; nobody is listed.`,
-        { property: key },
+        { property: key, error: err instanceof Error ? err.name : typeof err },
       );
       return [];
     }
