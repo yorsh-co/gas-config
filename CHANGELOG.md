@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- Editors and readers allowlists are read from the `GAS_CONFIG_EDITORS` and `GAS_CONFIG_READERS` Script Properties when the `editors` or `readers` option is omitted; an invalid or unreadable property lists nobody (fails closed)
+
+### Changed
+
+- `editors`, `readers` and `restrictReads` are now lazy getters
+- The manual fixture uses `GAS_CONFIG_EDITORS`; `MANUAL_EDITORS` is removed
+- README examples no longer show literal emails
+
 ---
 
 ## [2.2.0] - 2026-11-12
