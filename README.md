@@ -34,7 +34,6 @@
 ```js
 const config = new GasConfig({
   title: 'Course settings',
-  editors: ['admin@example.org'],
   schema: {
     passMark: {
       type: 'number',
@@ -183,7 +182,6 @@ Apps Script executes files in the order of the project, and `new GasConfig(...)`
 
 ```js
 const config = new GasConfig({
-  editors: ['admin@example.org'],
   schema: {
     passMark: { type: 'number', label: 'Pass mark', default: 70 },
   },
@@ -287,7 +285,6 @@ Declare the instance once, at global scope:
 const config = new GasConfig({
   title: 'Course settings',
   description: 'Values the grading scripts read at run time.',
-  editors: ['admin@example.org', 'teacher@example.org'],
   groups: [
     { id: 'general', label: 'General' },
     {
@@ -337,21 +334,21 @@ const config = new GasConfig({
 
 The instance must live at global scope because the settings UI calls back into your project through `GasConfigRpc`, a separate execution that starts from a blank global scope. `GasConfigRpc` routes to the most recently constructed `GasConfig`, so a project has one settings UI. The constructor validates the schema and options and throws a `[GasConfig]` error for a mistake, but touches no Apps Script service, so a global `new GasConfig(...)` costs nothing until first use.
 
-| Option          | Type                          | Description                                                                                           |
-| --------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `schema`        | `GasConfigSchema`             | Required. The fields, keyed by config key. See [Schema reference](#schema-reference)                  |
-| `groups`        | `GasConfigGroup[]`            | Sections of the UI, as `{ id, label, description? }`. A field joins one with `group`. Ids are unique  |
-| `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted or empty means nobody. See [Access](#access)           |
-| `restrictReads` | `boolean`                     | `true` limits reading to `editors` and `readers`. Default: everyone can read. See [Reading](#reading) |
-| `readers`       | `string[]`                    | Emails allowed to read, besides `editors`. Setting it restricts reads. See [Reading](#reading)        |
-| `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`             |
-| `description`   | `string`                      | Text under the heading                                                                                |
-| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`       |
-| `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                        |
-| `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                              |
-| `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                 |
-| `lockService`   | `{ withLock }`                | Default: `GasLock` when loaded, else `LockService` directly                                           |
-| `lockTimeoutMs` | `number`                      | How long a save waits for the script lock. Default `30000`                                            |
+| Option          | Type                          | Description                                                                                                                                                |
+| --------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema`        | `GasConfigSchema`             | Required. The fields, keyed by config key. See [Schema reference](#schema-reference)                                                                       |
+| `groups`        | `GasConfigGroup[]`            | Sections of the UI, as `{ id, label, description? }`. A field joins one with `group`. Ids are unique                                                       |
+| `editors`       | `string[]`                    | Emails allowed to change the settings. Omitted reads `GAS_CONFIG_EDITORS`; replaces it when given. See [Access](#access)                                   |
+| `restrictReads` | `boolean`                     | `true` limits reading to `editors` and `readers`. Default: everyone can read, unless `GAS_CONFIG_READERS` is set. See [Reading](#reading)                  |
+| `readers`       | `string[]`                    | Emails allowed to read, besides `editors`. Omitted reads `GAS_CONFIG_READERS`; replaces it when given. Setting it restricts reads. See [Reading](#reading) |
+| `title`         | `string`                      | Heading of the UI and default title of the dialog, sidebar and page. Default `'Settings'`                                                                  |
+| `description`   | `string`                      | Text under the heading                                                                                                                                     |
+| `appName`       | `string`                      | Project name shown above the title on the page, and in the browser tab as `<title> · <appName>`                                                            |
+| `theme`         | `'workspace' \| 'yorsh'`      | Default `'workspace'`. See [Theming](#theming)                                                                                                             |
+| `brand`         | `{ primaryColor?, logoUrl? }` | Brand overrides. See [Theming](#theming)                                                                                                                   |
+| `logger`        | `{ info, warn }`              | A GasLogger instance or `console`. Default: the execution log, prefixed `[GasConfig]`                                                                      |
+| `lockService`   | `{ withLock }`                | Default: `GasLock` when loaded, else `LockService` directly                                                                                                |
+| `lockTimeoutMs` | `number`                      | How long a save waits for the script lock. Default `30000`                                                                                                 |
 
 A config key starts with a letter, followed by letters, digits, `_`, `.` or `-`.
 
@@ -501,7 +498,7 @@ const config = new GasConfig({
       type: 'string',
       label: 'Contact',
       validate: (value) =>
-        value.endsWith('@example.org') ? null : 'Use a company address',
+        value.endsWith('@acme.test') ? null : 'Use a company address',
     },
   },
 });
@@ -515,10 +512,16 @@ Values cross `google.script.run` as JSON, so dates are `'YYYY-MM-DD'` strings, n
 
 ## Access
 
-`editors` is an allowlist of the emails that may change the settings.
+`editors` is an allowlist of the emails that may change the settings. There are two ways to list them:
 
-- Emails are trimmed, lowercased, deduplicated and checked to be email-shaped; anything else throws in the constructor. They are compared case-insensitively with `Session.getActiveUser().getEmail()`.
-- Omitted or empty means nobody can edit: the settings are read-only for everyone.
+1. **Script property (recommended).** Set `GAS_CONFIG_EDITORS` under Project Settings → Script properties to a comma-separated list of emails. Nothing is hard-coded in source.
+2. **`editors` option.** Pass the list from code, for example `editors: loadEditorsFromSomewhere()`. When the option is given it replaces the property entirely; the two are never merged.
+
+- The property is read only when the `editors` option is omitted. Emails are split on commas, trimmed, lowercased and deduplicated, and empty entries are skipped. Options go through the same normalisation, and anything not email-shaped throws in the constructor.
+- If any entry in `GAS_CONFIG_EDITORS` is not email-shaped, the list is treated as empty (fail closed) and gas-config logs the warning `Script Property "GAS_CONFIG_EDITORS" holds an invalid email; nobody is listed.` The warning names the key and never the value.
+- The constructor does not touch Script Properties. The property is read lazily, at most once per instance, when an access decision or the `editors` getter first needs it.
+- Emails are compared case-insensitively with `Session.getActiveUser().getEmail()`.
+- No editors, from either source, means nobody can edit: the settings are read-only for everyone.
 - A user who is not listed, or who cannot be identified, gets a read-only view of the values with the banner `Only listed editors can change these settings.` and no Save button.
 - A save from such a user fails with a 401 before the lock is taken or anything is read: `[GasConfig] Unable to identify the signed-in user` when `Session` throws or returns an empty email, and `[GasConfig] Not authorized` when the user is not listed. Neither message contains the email. The UI switches to read-only.
 - The user is read lazily, once per instance. `get()` and `getAll()` are never gated.
@@ -526,7 +529,7 @@ Values cross `google.script.run` as JSON, so dates are `'YYYY-MM-DD'` strings, n
 ![The settings page as a non-editor, with the read-only banner and no Save button](https://raw.githubusercontent.com/yorsh-co/gas-config/main/docs/images/read-only.png)
 
 > **Warning:**
-> `editors` is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read and change Script Properties directly or run code that does.
+> `editors` is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read and change Script Properties, including `GAS_CONFIG_EDITORS`, directly or run code that does.
 
 ### Reading
 
@@ -541,7 +544,18 @@ By default everyone who can open the settings can read them. `restrictReads` and
 | omitted, `true` | `[...]`   | `editors` and `readers`                           |
 | `false`         | given     | The constructor throws: the options contradict    |
 
+`GAS_CONFIG_READERS` is the Script Property counterpart of `readers`. It is read only when the `readers` option is omitted, and is normalised and validated like `GAS_CONFIG_EDITORS`.
+
+| `restrictReads`  | `GAS_CONFIG_READERS` | Who can read                                                    |
+| ---------------- | -------------------- | --------------------------------------------------------------- |
+| omitted, `true`  | set (even empty)     | `editors` and the listed readers; empty means `editors` only    |
+| omitted, `false` | not set              | Everyone                                                        |
+| `true`           | not set              | `editors` only                                                  |
+| `false`          | set                  | `editors` and the listed readers, with a warning (fails closed) |
+
 - Setting `readers` restricts reads by itself, even when it is empty: omitted (`undefined`) means no restriction, `[]` means editors only. `restrictReads: true` alongside it is redundant and allowed.
+- A set `GAS_CONFIG_READERS` restricts reads by itself, even when it is an empty string. An invalid email in it makes the list empty and logs a warning naming the key, so reads stay restricted to editors.
+- `restrictReads: false` together with `GAS_CONFIG_READERS` is not an error, since the property is configuration outside the code. Reads stay restricted and a warning is logged.
 - Editors can always read. An email may appear in both lists. `readers` is trimmed, lowercased, deduplicated and checked like `editors`.
 - Once reads are restricted, a user who cannot be identified is denied.
 - A denied user sees only the title, the `appName` and the brand logo, with the message `You do not have access to these settings.` The description, groups, fields, values and version are not sent to the browser.
@@ -549,13 +563,14 @@ By default everyone who can open the settings can read them. `restrictReads` and
 - `get()` and `getAll()` stay ungated: they run in your own code.
 
 > **Warning:**
-> `readers`, like `editors`, is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read Script Properties directly or run code that does.
+> `readers`, like `editors`, is a guard for people using the settings UI, not a security boundary. Anyone who can edit the script, or the container of a bound script, can read and change Script Properties, including `GAS_CONFIG_READERS`, directly or run code that does.
 
 ## Storage
 
 Values live in Script Properties.
 
 - **Keys.** One property per config key, named `gasConfig:<key>` and JSON-encoded, so numbers and booleans keep their type. Two more hold the version stamp (`gasConfig:__version`) and the id of the last save (`gasConfig:__saveId`). Keys must start with a letter, so none can reach them.
+- **Allowlist keys.** `GAS_CONFIG_EDITORS` and `GAS_CONFIG_READERS` sit outside the `gasConfig:` prefix. gas-config reads them but never writes them, so a settings save cannot change who has access.
 - **One write per save.** A save takes the script lock (GasLock when loaded, otherwise `LockService`), re-reads the properties, validates every change, and writes only the changed keys, the new version and the `saveId` in one `setProperties` call. If the write throws, nothing changed. A cleared field is stored as JSON `null`, which reads as unset. A save that changes nothing writes nothing.
 - **Conflicts.** The UI sends the version it loaded with each save. If the stored version has moved on, nothing is written and the UI offers to reload the latest values.
 - **Safe retries.** `google.script.run` sometimes drops a call without a word. Each save carries a client-generated `saveId`, and a retry reuses it. If the server already applied that `saveId`, it replays the success instead of reporting a false conflict. A save that times out is retried once, then the user can try again.
@@ -627,7 +642,6 @@ A standalone script that already serves a [gas-webapp](https://github.com/yorsh-
 
 ```ts
 const config = new GasConfig({
-  editors: ['admin@example.org'],
   schema: {/* ... */},
 });
 const app = new GasWebApp();

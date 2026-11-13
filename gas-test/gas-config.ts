@@ -231,6 +231,22 @@ test('the editors check uses the running account', () => {
   });
 });
 
+test('editors come from GAS_CONFIG_EDITORS when omitted', () => {
+  const key = 'GAS_CONFIG_EDITORS';
+  const properties = PropertiesService.getScriptProperties();
+  const previous = properties.getProperty(key);
+
+  try {
+    properties.setProperty(key, runningUser());
+
+    const config = new GasConfig({ schema: testSchema });
+    assert(config._canEdit(), 'the property should list the running user');
+  } finally {
+    if (previous === null) properties.deleteProperty(key);
+    else properties.setProperty(key, previous);
+  }
+});
+
 test('createHtmlOutput produces a real page with a parseable bootstrap', () => {
   withCleanProperties(() => {
     const config = newConfig({

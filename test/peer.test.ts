@@ -79,6 +79,17 @@ function memberSignature(
       file,
     );
   }
+  if (ts.isGetAccessorDeclaration(member)) {
+    return print(
+      ts.factory.createPropertySignature(
+        undefined,
+        member.name,
+        undefined,
+        member.type,
+      ),
+      file,
+    );
+  }
   if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
     return print(
       ts.factory.createPropertySignature(
