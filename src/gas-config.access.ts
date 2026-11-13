@@ -1,3 +1,18 @@
+/** Script Property holding the comma-separated editor emails. */
+const _GAS_CONFIG_EDITORS_PROPERTY = 'GAS_CONFIG_EDITORS';
+
+/** Script Property holding the comma-separated reader emails. */
+const _GAS_CONFIG_READERS_PROPERTY = 'GAS_CONFIG_READERS';
+
+/** Constructor options for `_GasConfigAccess`; `undefined` means omitted. */
+interface _GasConfigAccessOptions {
+  /** Normalised editor emails. */
+  editors?: readonly string[] | undefined;
+  /** Normalised reader emails. */
+  readers?: readonly string[] | undefined;
+  restrictReads?: boolean | undefined;
+}
+
 /**
  * The `editors` and `readers` allowlists and the identity of the signed-in
  * user.
@@ -15,28 +30,78 @@
  * "Execute as: User accessing the web app". Failures follow gas-webapp's auth
  * middleware: an unidentifiable user and an unlisted user are both 401s, and
  * neither message contains the email.
+ *
+ * A list whose option is omitted is read from its Script Property
+ * (`GAS_CONFIG_EDITORS`, `GAS_CONFIG_READERS`) as comma-separated emails, on
+ * first use and once per instance. A property holding an invalid email lists
+ * nobody, so access fails closed.
  */
 class _GasConfigAccess {
-  private readonly _editors: ReadonlySet<string>;
-  private readonly _readers: ReadonlySet<string>;
-  private readonly _restricted: boolean;
+  private readonly _options: _GasConfigAccessOptions;
+  private readonly _warn: (
+    message: string,
+    context: Record<string, unknown>,
+  ) => void;
+  private _properties: GoogleAppsScript.Properties.Properties | null = null;
+  private _editors: ReadonlySet<string> | undefined;
+  /** `null` once resolved when neither the option nor the property is set. */
+  private _readers: ReadonlySet<string> | null | undefined;
   private _identified = false;
   private _email: string | null = null;
 
   /**
-   * @param editors Normalised (trimmed, lowercase) emails. An empty list
-   * means nobody can edit.
-   * @param readers Normalised emails allowed to read besides the editors.
-   * @param restricted Whether reads are limited to editors and readers.
+   * @param options The validated, normalised constructor options.
+   * @param warn Logs a warning; must not throw.
    */
   constructor(
-    editors: readonly string[],
-    readers: readonly string[],
-    restricted: boolean,
+    options: _GasConfigAccessOptions,
+    warn: (message: string, context: Record<string, unknown>) => void,
   ) {
-    this._editors = new Set(editors);
-    this._readers = new Set(readers);
-    this._restricted = restricted;
+    this._options = options;
+    this._warn = warn;
+  }
+
+  /** The editors: the option, else the property, else nobody. */
+  editors(): ReadonlySet<string> {
+    this._editors ??= new Set(
+      this._options.editors ??
+        this._fromProperty(_GAS_CONFIG_EDITORS_PROPERTY) ??
+        [],
+    );
+    return this._editors;
+  }
+
+  /**
+   * The readers besides the editors: the option, else the property, else
+   * `null` when neither is set.
+   */
+  readers(): ReadonlySet<string> | null {
+    if (this._readers === undefined) {
+      const listed =
+        this._options.readers ??
+        this._fromProperty(_GAS_CONFIG_READERS_PROPERTY);
+
+      if (
+        listed !== undefined &&
+        this._options.readers === undefined &&
+        this._options.restrictReads === false
+      ) {
+        this._warn(
+          `"restrictReads": false contradicts Script Property "${_GAS_CONFIG_READERS_PROPERTY}"; reads are restricted.`,
+          { property: _GAS_CONFIG_READERS_PROPERTY },
+        );
+      }
+      this._readers = listed === undefined ? null : new Set(listed);
+    }
+    return this._readers;
+  }
+
+  /**
+   * Whether reads are limited to editors and readers: when `restrictReads` is
+   * true, or a readers list is set by option or property.
+   */
+  restricted(): boolean {
+    return this._options.restrictReads === true || this.readers() !== null;
   }
 
   /**
@@ -61,7 +126,7 @@ class _GasConfigAccess {
   /** Whether the signed-in user is listed in `editors`, ignoring case. */
   canEdit(): boolean {
     const email = this.identify();
-    return email !== null && this._editors.has(email.toLowerCase());
+    return email !== null && this.editors().has(email.toLowerCase());
   }
 
   /**
@@ -70,13 +135,13 @@ class _GasConfigAccess {
    * an editor or reader. Never throws.
    */
   canRead(): boolean {
-    if (!this._restricted) return true;
+    if (!this.restricted()) return true;
 
     const email = this.identify();
     if (email === null) return false;
 
     const key = email.toLowerCase();
-    return this._editors.has(key) || this._readers.has(key);
+    return this.editors().has(key) || (this.readers()?.has(key) ?? false);
   }
 
   /**
@@ -84,7 +149,7 @@ class _GasConfigAccess {
    * be identified or is not an editor.
    */
   assertCanEdit(): string {
-    return this._assertListed(this._editors);
+    return this._assertListed(this.editors());
   }
 
   /**
@@ -93,8 +158,47 @@ class _GasConfigAccess {
    * when reads are not restricted.
    */
   assertCanRead(): void {
-    if (!this._restricted) return;
-    this._assertListed(this._editors, this._readers);
+    if (!this.restricted()) return;
+    this._assertListed(this.editors(), this.readers() ?? new Set());
+  }
+
+  /**
+   * Resolves a list from a Script Property: `undefined` when unset, else the
+   * comma-separated emails trimmed, lowercased and deduplicated. An invalid
+   * email, or a failed read, lists nobody and warns with the key only, never
+   * the value.
+   */
+  private _fromProperty(key: string): string[] | undefined {
+    let value: string | null;
+
+    try {
+      this._properties ??= PropertiesService.getScriptProperties();
+      value = this._properties.getProperty(key);
+    } catch {
+      this._warn(
+        `Script Property "${key}" could not be read; nobody is listed.`,
+        { property: key },
+      );
+      return [];
+    }
+    if (value === null) return undefined;
+
+    const emails = [
+      ...new Set(
+        value
+          .split(',')
+          .map((email) => email.trim().toLowerCase())
+          .filter((email) => email !== ''),
+      ),
+    ];
+    if (emails.some((email) => !_GAS_CONFIG_EMAIL_PATTERN.test(email))) {
+      this._warn(
+        `Script Property "${key}" holds an invalid email; nobody is listed.`,
+        { property: key },
+      );
+      return [];
+    }
+    return emails;
   }
 
   /** Returns the user's email, or throws a 401 unless listed in one of `lists`. */
