@@ -6,13 +6,7 @@
  * URLs are checked syntactically.
  */
 declare const GasConfigValidation: Readonly<{
-  validateField: (field: GasConfigClientField, value: unknown) => string | null;
-  validateAll: (
-    fields: readonly GasConfigClientField[],
-    values: Readonly<Record<string, unknown>>,
-  ) => Record<string, string>;
-  normalize: (
-    field: GasConfigClientField,
-    rawInput: string | number | boolean | null | undefined,
-  ) => GasConfigValue;
+    validateField: (field: GasConfigClientField, value: unknown) => string | null;
+    validateAll: (fields: readonly GasConfigClientField[], values: Readonly<Record<string, unknown>>) => Record<string, string>;
+    normalize: (field: GasConfigClientField, rawInput: string | number | boolean | null | undefined) => GasConfigValue;
 }>;

@@ -1,6 +1,6 @@
 {
   "name": "gas-config",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A settings UI for Google Apps Script projects.",
   "license": "MIT",
   "author": "Joshua Porter",
@@ -19,9 +19,9 @@
       "gas-config.ui.js"
     ],
     "peers": {
-      "gas-lock": "^1.2.0",
-      "gas-error": "^1.2.2",
-      "gas-logger": "^2.0.1"
+      "gas-lock": "^1.2.5",
+      "gas-error": "^1.2.6",
+      "gas-logger": "^2.0.5"
     }
   }
 }
