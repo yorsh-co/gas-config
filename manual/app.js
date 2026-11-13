@@ -11,8 +11,8 @@
  * Behaviour is switched with Script Properties (Project Settings, Script
  * properties), so the fixture needs no re-push between checks:
  *
- * - MANUAL_EDITORS: comma-separated editor emails. Falls back to
- *   FALLBACK_EDITORS below.
+ * - GAS_CONFIG_EDITORS: comma-separated editor emails, read by gas-config
+ *   itself. GAS_CONFIG_READERS likewise restricts reads.
  * - MANUAL_THEME: `workspace` or `yorsh` (default `yorsh`).
  * - MANUAL_LOGO: `true` to show a `data:` image logo (the yorsh theme only).
  * - MANUAL_BRAND_COLOR: a hex colour such as `#276182`, overriding the
@@ -21,9 +21,6 @@
  *   the container's name from `getContainerName_()` in the host file, only where a container is active (not in the web app).
  * - MANUAL_LARGE_SCHEMA: `true` to add 150 extra fields in 5 groups.
  */
-
-/** TESTER: replace with your own email, or set MANUAL_EDITORS instead. */
-const FALLBACK_EDITORS = ['you@example.org'];
 
 const LOGO_SVG =
   '<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -45,16 +42,6 @@ function appName_() {
   } catch (error) {
     return undefined;
   }
-}
-
-function editors_() {
-  const listed = setting_('MANUAL_EDITORS');
-  return listed
-    ? listed
-        .split(',')
-        .map((email) => email.trim())
-        .filter(Boolean)
-    : FALLBACK_EDITORS;
 }
 
 function brand_() {
@@ -140,7 +127,7 @@ function schema_() {
     'notify.replyTo': {
       type: 'string',
       label: 'Reply-to address',
-      placeholder: 'name@example.org',
+      placeholder: 'Email address',
       group: 'notify',
       pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$',
       patternMessage: 'Enter an email address',
@@ -198,7 +185,6 @@ const config = new GasConfig({
     'These settings control how this project runs. Changes apply the next time it runs.',
   theme: setting_('MANUAL_THEME') === 'workspace' ? 'workspace' : 'yorsh',
   brand: brand_(),
-  editors: editors_(),
   groups: groups_(),
   schema: schema_(),
   logger: logger_(),
