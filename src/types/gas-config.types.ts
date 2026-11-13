@@ -145,17 +145,25 @@ interface GasConfigPageOptions {
 interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   schema: S;
   groups?: GasConfigGroup[];
-  /** Emails allowed to change the settings. Omitted or empty means nobody. */
+  /**
+   * Emails allowed to change the settings. When omitted, the comma-separated
+   * Script Property `GAS_CONFIG_EDITORS` is used; nobody if that is unset too.
+   * An option replaces the property entirely.
+   */
   editors?: string[];
   /**
    * Emails allowed to read the settings, besides `editors`. Setting it
    * restricts reads; `undefined` leaves reads open to everyone, `[]` limits
-   * them to `editors`.
+   * them to `editors`. When omitted, the Script Property `GAS_CONFIG_READERS`
+   * is used (set, even empty, restricts reads). An option replaces the
+   * property entirely.
    */
   readers?: string[];
   /**
    * Limits reads to `editors` (and `readers`). Omitted or `false` leaves reads
-   * open unless `readers` is set; `false` with `readers` throws.
+   * open unless `readers` or the `GAS_CONFIG_READERS` property is set;
+   * `false` with the `readers` option throws, and `false` with the property
+   * keeps reads restricted and logs a warning.
    */
   restrictReads?: boolean;
   /** @default 'Settings' */

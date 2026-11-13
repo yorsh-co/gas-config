@@ -46,7 +46,7 @@ interface GasConfig<S extends GasConfigSchema = GasConfigSchema> {
    * `_`, as Apps Script cannot call private functions from a menu.
    *
    * ```js
-   * const config = new GasConfig({ schema, editors: ['admin@example.org'] });
+   * const config = new GasConfig({ schema }); // editors come from GAS_CONFIG_EDITORS
    *
    * function onOpen() {
    *   SpreadsheetApp.getUi()

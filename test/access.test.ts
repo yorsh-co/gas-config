@@ -587,3 +587,236 @@ describe('access: unrestricted reads', () => {
     expect(mocks.Session.getActiveUser).not.toHaveBeenCalled();
   });
 });
+
+describe('allowlists: Script Properties', () => {
+  const EDITORS = 'GAS_CONFIG_EDITORS';
+  const READERS = 'GAS_CONFIG_READERS';
+
+  /** A config with no `editors` option, over the given properties. */
+  const fromProperties = (
+    properties: Record<string, string>,
+    options: Partial<GasConfigOptions> = {},
+    email: string | Error = DEFAULT_EMAIL,
+  ) =>
+    setup({ editors: undefined as never, ...options }, { properties, email });
+
+  it('reads editors from GAS_CONFIG_EDITORS when the option is omitted', () => {
+    const { config } = fromProperties({
+      [EDITORS]: ` ${DEFAULT_EMAIL.toUpperCase()} , b@example.org,,a@EXAMPLE.org, b@example.org `,
+    });
+
+    expect(config.editors).toEqual([
+      DEFAULT_EMAIL,
+      'b@example.org',
+      'a@example.org',
+    ]);
+    expect(config._canEdit()).toBe(true);
+  });
+
+  it('lists nobody when neither the option nor the property is set', () => {
+    const { config } = fromProperties({});
+
+    expect(config.editors).toEqual([]);
+    expect(config._canEdit()).toBe(false);
+  });
+
+  it('ignores the property when the option is given', () => {
+    const { config, mocks } = setup(
+      { editors: ['a@example.org'], readers: [] },
+      { properties: { [EDITORS]: DEFAULT_EMAIL, [READERS]: DEFAULT_EMAIL } },
+    );
+
+    expect(config.editors).toEqual(['a@example.org']);
+    expect(config.readers).toEqual([]);
+    expect(config._canEdit()).toBe(false);
+    expect(config._canRead()).toBe(false);
+    expect(mocks.PropertiesService.getScriptProperties).not.toHaveBeenCalled();
+  });
+
+  it('reads each property once per instance', () => {
+    const { config, mocks } = fromProperties({
+      [EDITORS]: DEFAULT_EMAIL,
+      [READERS]: 'r@example.org',
+    });
+
+    config._canEdit();
+    config._canRead();
+    void config.editors;
+    void config.readers;
+    void config.restrictReads;
+
+    expect(mocks.properties.getProperty).toHaveBeenCalledTimes(2);
+    expect(mocks.properties.getProperty).toHaveBeenCalledWith(EDITORS);
+    expect(mocks.properties.getProperty).toHaveBeenCalledWith(READERS);
+  });
+
+  it('returns copies of the lists', () => {
+    const { config } = fromProperties({ [EDITORS]: DEFAULT_EMAIL });
+
+    config.editors.push('x@example.org');
+
+    expect(config.editors).toEqual([DEFAULT_EMAIL]);
+  });
+
+  it.each(['plain', 'a@b', 'a b@example.org'])(
+    'fails closed on the invalid entry %j and warns without the value',
+    (invalid) => {
+      const { config, logger } = fromProperties({
+        [EDITORS]: `${DEFAULT_EMAIL}, ${invalid}`,
+      });
+
+      expect(config.editors).toEqual([]);
+      expect(config._canEdit()).toBe(false);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        `Script Property "${EDITORS}" holds an invalid email; nobody is listed.`,
+        { property: EDITORS },
+      );
+      expect(JSON.stringify(logger.warn.mock.calls)).not.toContain(
+        DEFAULT_EMAIL,
+      );
+    },
+  );
+
+  it('restricts reads when GAS_CONFIG_READERS is set', () => {
+    const properties = {
+      [EDITORS]: DEFAULT_EMAIL,
+      [READERS]: 'R@example.org',
+    };
+
+    expect(fromProperties(properties).config.restrictReads).toBe(true);
+    expect(fromProperties(properties).config.readers).toEqual([
+      'r@example.org',
+    ]);
+    expect(
+      fromProperties(properties, {}, 'r@example.org').config._canRead(),
+    ).toBe(true);
+    expect(
+      fromProperties(properties, {}, 'other@example.org').config._canRead(),
+    ).toBe(false);
+  });
+
+  it('limits reads to editors when GAS_CONFIG_READERS is empty', () => {
+    const properties = { [EDITORS]: DEFAULT_EMAIL, [READERS]: '' };
+
+    expect(fromProperties(properties).config.restrictReads).toBe(true);
+    expect(fromProperties(properties).config._canRead()).toBe(true);
+    expect(
+      fromProperties(properties, {}, 'other@example.org').config._canRead(),
+    ).toBe(false);
+  });
+
+  it('leaves reads open when GAS_CONFIG_READERS is not set', () => {
+    const { config } = fromProperties({}, {}, 'other@example.org');
+
+    expect(config.restrictReads).toBe(false);
+    expect(config._canRead()).toBe(true);
+  });
+
+  it('limits reads to editors when GAS_CONFIG_READERS is invalid', () => {
+    const properties = { [EDITORS]: DEFAULT_EMAIL, [READERS]: 'nope' };
+    const { config, logger } = fromProperties(
+      properties,
+      {},
+      'other@example.org',
+    );
+
+    expect(config.restrictReads).toBe(true);
+    expect(config.readers).toEqual([]);
+    expect(config._canRead()).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Script Property "${READERS}" holds an invalid email; nobody is listed.`,
+      { property: READERS },
+    );
+    expect(JSON.stringify(logger.warn.mock.calls)).not.toContain('nope');
+  });
+
+  it('restricts reads despite restrictReads: false, with a warning', () => {
+    const { config, logger } = fromProperties(
+      { [READERS]: 'r@example.org' },
+      { restrictReads: false },
+      'other@example.org',
+    );
+
+    expect(config.restrictReads).toBe(true);
+    expect(config._canRead()).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      `"restrictReads": false contradicts Script Property "${READERS}"; reads are restricted.`,
+      { property: READERS },
+    );
+  });
+
+  it('still checks GAS_CONFIG_READERS when restrictReads is false', () => {
+    const { config, mocks } = setup(
+      { restrictReads: false },
+      { properties: {} },
+    );
+
+    expect(config._canRead()).toBe(true);
+    expect(mocks.properties.getProperty).toHaveBeenCalledWith(READERS);
+  });
+
+  it('restricts reads from GAS_CONFIG_READERS when restrictReads is true and readers is omitted', () => {
+    const properties = { [EDITORS]: DEFAULT_EMAIL, [READERS]: 'r@example.org' };
+    const options = { restrictReads: true };
+
+    expect(
+      fromProperties(properties, options, 'r@example.org').config._canRead(),
+    ).toBe(true);
+    expect(
+      fromProperties(
+        properties,
+        options,
+        'other@example.org',
+      ).config._canRead(),
+    ).toBe(false);
+  });
+
+  it('fails closed without throwing when a property cannot be read', () => {
+    const failing = (email: string = DEFAULT_EMAIL) => {
+      const loaded = fromProperties({}, { restrictReads: true }, email);
+      loaded.mocks.properties.getProperty.mockImplementation(() => {
+        throw new Error('secret-value');
+      });
+      return loaded;
+    };
+    const { config, logger } = failing();
+
+    expect(config._canEdit()).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Script Property "${EDITORS}" could not be read; nobody is listed.`,
+      { property: EDITORS, error: 'Error' },
+    );
+    expect(JSON.stringify(logger.warn.mock.calls)).not.toContain(
+      'secret-value',
+    );
+    expect(failing('other@example.org').config._canRead()).toBe(false);
+  });
+
+  it('does not report a contradiction when GAS_CONFIG_READERS cannot be read', () => {
+    const { config, mocks, logger } = setup(
+      { restrictReads: false },
+      { properties: {}, email: 'other@example.org' },
+    );
+    mocks.properties.getProperty.mockImplementation(() => {
+      throw new Error('secret-value');
+    });
+
+    expect(config._canRead()).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Script Property "${READERS}" could not be read; nobody is listed.`,
+      { property: READERS, error: 'Error' },
+    );
+    expect(JSON.stringify(logger.warn.mock.calls)).not.toContain('contradicts');
+  });
+
+  it('falls back to console.warn when the logger throws on an invalid list', () => {
+    const { config, logger, mocks } = fromProperties({ [EDITORS]: 'nope' });
+    logger.warn.mockImplementation(() => {
+      throw new Error('logger down');
+    });
+
+    expect(config._canEdit()).toBe(false);
+    expect(mocks.console.warn).toHaveBeenCalled();
+  });
+});

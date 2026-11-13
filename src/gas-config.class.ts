@@ -136,12 +136,6 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   groups: GasConfigGroup[];
   theme: GasConfigTheme;
   brand: GasConfigBrand;
-  /** Normalised emails allowed to change the settings; empty means nobody. */
-  editors: string[];
-  /** Whether reads are limited to `editors` and `readers`; true whenever `readers` was given. */
-  restrictReads: boolean;
-  /** Normalised emails allowed to read besides `editors`; `[]` when omitted. */
-  readers: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
   lockTimeoutMs: number;
@@ -161,6 +155,30 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   private readonly _access: _GasConfigAccess;
   private readonly _warned = new Set<string>();
 
+  /**
+   * Normalised emails allowed to change the settings; empty means nobody.
+   * Returns a copy. May read Script Properties on first access.
+   */
+  get editors(): string[] {
+    return [...this._access.editors()];
+  }
+
+  /**
+   * Normalised emails allowed to read besides `editors`; `[]` when none are
+   * listed. Returns a copy. May read Script Properties on first access.
+   */
+  get readers(): string[] {
+    return [...(this._access.readers() ?? [])];
+  }
+
+  /**
+   * Whether reads are limited to `editors` and `readers`. May read Script
+   * Properties on first access.
+   */
+  get restrictReads(): boolean {
+    return this._access.restricted();
+  }
+
   constructor(options: GasConfigOptions<S>) {
     if (!options || typeof options !== 'object') {
       throw new Error(
@@ -178,9 +196,9 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     this.groups = this._resolveGroups(options.groups);
     this.theme = this._resolveTheme(options.theme);
     this.brand = this._resolveBrand(options.brand);
-    this.editors = this._resolveEmails('editors', options.editors);
-    this.readers = this._resolveEmails('readers', options.readers);
-    this.restrictReads = this._resolveRestrictReads(
+    const editors = this._resolveEmails('editors', options.editors);
+    const readers = this._resolveEmails('readers', options.readers);
+    const restrictReads = this._resolveRestrictReads(
       options.restrictReads,
       options.readers,
     );
@@ -204,9 +222,8 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     this.logger = this._resolveLogger(options.logger);
 
     this._access = new _GasConfigAccess(
-      this.editors,
-      this.readers,
-      this.restrictReads,
+      { editors, readers, restrictReads },
+      (message, context) => this._warn(message, context),
     );
     this._storage = new _GasConfigStorage(
       this._clientFields,
@@ -316,22 +333,26 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
     return value === null ? null : (this._validators.get(key)?.(value) ?? null);
   }
 
+  /** Logs a warning through the logger; never throws. */
+  private _warn(message: string, context: Record<string, unknown>): void {
+    try {
+      this.logger.warn(message, context);
+    } catch (error) {
+      console.warn('[GasConfig] The logger threw while logging a warning.', {
+        error,
+      });
+    }
+  }
+
   /** Warns once per key about a stored value that was replaced. */
   private _warnInvalid(keys: readonly string[]): void {
     for (const key of keys) {
       if (this._warned.has(key)) continue;
       this._warned.add(key);
 
-      try {
-        this.logger.warn(
-          `Stored value for "${key}" is invalid; using the default.`,
-          { key },
-        );
-      } catch (error) {
-        console.warn('[GasConfig] The logger threw while logging a warning.', {
-          error,
-        });
-      }
+      this._warn(`Stored value for "${key}" is invalid; using the default.`, {
+        key,
+      });
     }
   }
 
@@ -435,14 +456,14 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   }
 
   /**
-   * Validate an email list: trimmed, lowercased and deduplicated. Omitted
-   * means an empty list.
+   * Validate an email list: trimmed, lowercased and deduplicated. Returns
+   * `undefined` when omitted, so the Script Property applies.
    */
   private _resolveEmails(
     name: 'editors' | 'readers',
     emails?: string[],
-  ): string[] {
-    if (emails === undefined) return [];
+  ): string[] | undefined {
+    if (emails === undefined) return undefined;
     if (
       !Array.isArray(emails) ||
       emails.some((email) => typeof email !== 'string' || email.trim() === '')
@@ -465,13 +486,12 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   }
 
   /**
-   * Resolve whether reads are restricted: `readers` restricts by itself, and
-   * `restrictReads: false` contradicts it.
+   * Validate `restrictReads`; `false` contradicts a `readers` option.
    */
   private _resolveRestrictReads(
     restrictReads: unknown,
     readers: unknown,
-  ): boolean {
+  ): boolean | undefined {
     if (restrictReads !== undefined && typeof restrictReads !== 'boolean') {
       throw new Error(
         '[GasConfig] Invalid "restrictReads": expected a boolean.',
@@ -482,7 +502,7 @@ class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
         '[GasConfig] Invalid "restrictReads": false contradicts "readers"; omit one.',
       );
     }
-    return readers !== undefined || restrictReads === true;
+    return restrictReads;
   }
 
   /**
