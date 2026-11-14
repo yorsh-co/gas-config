@@ -2,6 +2,14 @@
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- README yorsh theme screenshot shows the `@yorsh/brand` 1.0.0 look
+
+---
+
 ## [2.3.0] - 2026-11-13
 
 ### Added
