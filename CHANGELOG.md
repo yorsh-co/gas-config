@@ -7,6 +7,7 @@
 ### Changed
 
 - `gasdev` is updated to `^3.2.1`; `npm run clean` uses `gasdev clean` and the `rimraf` dev dependency is removed
+- README yorsh theme screenshot shows the `@yorsh/brand` 1.0.0 look
 
 ---
 
